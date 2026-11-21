@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hackathon starter
 
-## Getting Started
+Next.js 16 (App Router, TS, Tailwind) · Supabase (Postgres, Auth, Storage) · TanStack Query · PostHog · Anthropic + OpenAI · Cloudflare Workers (OpenNext). pnpm only.
 
-First, run the development server:
+## Setup (local)
+1. `pnpm install`
+2. Create a Supabase project (EU Frankfurt). In **Authentication > Providers > Email**: turn **Confirm email OFF**.
+3. `cp .env.example .env.local` and fill in every value (Supabase URL + anon key + project ref, PostHog key, AI keys).
+4. `pnpm exec supabase login` then `pnpm exec supabase link --project-ref <ref>`
+5. `pnpm db:push` (applies `supabase/migrations/*`)
+6. `pnpm db:types` (regenerates `src/lib/database.types.ts`)
+7. `pnpm dev` and open http://localhost:3000
+8. Supabase **Authentication > URL Configuration**: Site URL = your live URL; add redirect URLs `http://localhost:3000/**` and `https://<your-worker>.workers.dev/**`.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Missing or invalid env vars fail the app at startup with a clear list (`src/lib/env.ts`).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Where things are
+- Landing copy: `src/lib/site-config.ts` (the only file to edit to rewrite copy)
+- Protected pages: `src/app/(app)/...` and add the path to `PROTECTED` in `src/proxy.ts`
+- Analytics events: `src/lib/analytics.ts`
+- AI route: `src/app/api/ai/route.ts` (`AI_PROVIDER=anthropic|openai`, POST `{ "prompt": "..." }`, signed-in users only)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Add a table + migration
+1. `pnpm exec supabase migration new add_trips` and edit the new SQL file in `supabase/migrations/`
+2. Always `alter table ... enable row level security;` and add policies (see `20261121000000_init.sql`)
+3. `pnpm db:push && pnpm db:types`
+4. Use it: `const supabase = await createClient()` (`@/lib/supabase/server`) in server code, or `@/lib/supabase/client` in client components with TanStack Query.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploy (Cloudflare Workers, prod only)
+- Manual: `pnpm exec wrangler login` then `pnpm deploy`. Local Workers preview: `pnpm preview` (needs a `.dev.vars` with the same values as `.env.local`).
+- Server secrets (AI keys) are NOT in the repo: set them with `pnpm exec wrangler secret put ANTHROPIC_API_KEY` (and the others), or let the GitHub Action upload them.
+- `NEXT_PUBLIC_*` values are inlined at **build** time, so they must be present when you build.
+- CI: push to `main` runs `.github/workflows/deploy.yml`. Add these GitHub repo secrets:
+  `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`, `AI_PROVIDER`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+- Next 16: the middleware file is `src/proxy.ts`. `cacheComponents` is off on purpose.
+- Workers: use Web APIs / `fetch`; avoid Node-only libs (fs, native modules).
