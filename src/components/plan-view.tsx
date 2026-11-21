@@ -71,7 +71,7 @@ export function PlanView({ planId }: { planId: string }) {
   }
 
   const shell = (children: React.ReactNode) => (
-    <div className="min-h-screen bg-neutral-900">
+    <div className="min-h-screen bg-ink">
       <div className="mx-auto min-h-screen max-w-md bg-neutral-50 px-4 pb-16">
         <SiteHeader />
         {children}
@@ -79,12 +79,12 @@ export function PlanView({ planId }: { planId: string }) {
     </div>
   );
 
-  if (valid && isPending) return shell(<p className="py-10 text-center text-neutral-500">{t("vote.loading")}</p>);
+  if (valid && isPending) return shell(<p className="py-10 text-center text-secondary">{t("vote.loading")}</p>);
   if (!plan)
     return shell(
       <div className="py-10 text-center">
-        <p className="text-neutral-700">{t("vote.notFound")}</p>
-        <Link href="/" className="mt-4 inline-block rounded-lg bg-black px-4 py-2.5 font-medium text-white">
+        <p className="text-ink">{t("vote.notFound")}</p>
+        <Link href="/" className="mt-4 inline-block rounded-full bg-brand px-5 py-2.5 font-semibold text-white">
           {t("vote.own")}
         </Link>
       </div>,
@@ -97,7 +97,7 @@ export function PlanView({ planId }: { planId: string }) {
   return shell(
     <>
       <h1 className="text-2xl font-bold tracking-tight">{t("vote.title")}</h1>
-      <p className="mt-1 text-neutral-600">{t("vote.intro")}</p>
+      <p className="mt-1 text-secondary">{t("vote.intro")}</p>
 
       <input
         ref={nameInput}
@@ -109,7 +109,7 @@ export function PlanView({ planId }: { planId: string }) {
         autoComplete="given-name"
         className="mt-4 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5"
       />
-      {message && <p className="mt-2 text-sm text-neutral-700">{message}</p>}
+      {message && <p className="mt-2 text-sm text-ink">{message}</p>}
 
       <div className="mt-4 space-y-3">
         {plan.spots.map((spot) => {
@@ -125,13 +125,13 @@ export function PlanView({ planId }: { planId: string }) {
                 <span className="font-semibold">
                   {spot.votes} {t(spot.votes === 1 ? "vote.vote" : "vote.votes")}
                 </span>
-                {spot.voters.length > 0 && <span className="text-neutral-500"> · {spot.voters.join(", ")}</span>}
+                {spot.voters.length > 0 && <span className="text-secondary"> · {spot.voters.join(", ")}</span>}
               </p>
               <div className="flex gap-2">
                 <button
                   data-testid="vote-button"
                   onClick={() => vote(spot.id)}
-                  className={`flex-1 rounded-lg px-4 py-2.5 font-medium ${mine ? "bg-black text-white" : "border border-neutral-300"}`}
+                  className={`flex-1 rounded-full px-4 py-2.5 font-medium ${mine ? "bg-brand text-white" : "border border-neutral-300"}`}
                 >
                   {t(mine ? "vote.mine" : "vote.button")}
                 </button>
@@ -141,7 +141,7 @@ export function PlanView({ planId }: { planId: string }) {
                   target="_blank"
                   rel="noreferrer"
                   onClick={() => track(Events.directionsTapped, { plan_id: planId, spot_id: spot.id })}
-                  className="rounded-lg border border-neutral-300 px-4 py-2.5 font-medium"
+                  className="rounded-full border border-neutral-300 px-4 py-2.5 font-medium"
                 >
                   {t("vote.directions")}
                 </a>
@@ -152,7 +152,7 @@ export function PlanView({ planId }: { planId: string }) {
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-3">
-        <button onClick={share} className="w-full rounded-lg bg-black px-4 py-3 font-medium text-white">
+        <button onClick={share} className="w-full rounded-full bg-brand px-4 py-3 font-semibold text-white">
           {t("vote.share")}
         </button>
         <Link href="/" className="text-sm font-medium underline">

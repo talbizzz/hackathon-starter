@@ -25,7 +25,7 @@ export function SpotCard({ spot, badge, children, highlighted, onWatch }: Props)
   const { t, lang } = useT();
   const price = spot.price === 0 ? t("price.free") : "€".repeat(spot.price);
   const note = lang === "de" ? (spot.note_de ?? spot.note_en) : (spot.note_en ?? spot.note_de);
-  const frame = `scroll-mt-2 rounded-2xl border bg-white p-4 ${highlighted ? "border-black" : "border-neutral-200"}`;
+  const frame = `scroll-mt-2 rounded-2xl border bg-white p-4 ${highlighted ? "border-ink" : "border-neutral-200"}`;
   const meta = [t(`cat.${spot.category}`), spot.neighbourhood, spot.station, price].filter(Boolean).join(" · ");
   const heading = (
     <div className="flex items-start justify-between gap-3">
@@ -42,7 +42,7 @@ export function SpotCard({ spot, badge, children, highlighted, onWatch }: Props)
           <button
             onClick={onWatch}
             aria-label={`${t("card.video")}: ${spot.name}`}
-            className="relative aspect-[9/16] w-16 shrink-0 overflow-hidden rounded-xl bg-neutral-900 text-white"
+            className="relative aspect-[9/16] w-16 shrink-0 overflow-hidden rounded-xl bg-ink text-white"
           >
             {spot.poster_url && (
               // eslint-disable-next-line @next/next/no-img-element -- small remote still, served as is
@@ -54,8 +54,8 @@ export function SpotCard({ spot, badge, children, highlighted, onWatch }: Props)
           </button>
           <div className="min-w-0 flex-1">
             {heading}
-            <p className="mt-0.5 text-sm text-neutral-500">{meta}</p>
-            {note && <p className="mt-1.5 line-clamp-2 text-sm text-neutral-700">{note}</p>}
+            <p className="mt-0.5 text-sm text-secondary">{meta}</p>
+            {note && <p className="mt-1.5 line-clamp-2 text-sm text-ink">{note}</p>}
           </div>
         </div>
         <div className="mt-3 flex gap-2">
@@ -75,8 +75,8 @@ export function SpotCard({ spot, badge, children, highlighted, onWatch }: Props)
   return (
     <article id={`spot-${spot.id}`} data-testid="spot-card" className={frame}>
       {heading}
-      <p className="mt-0.5 text-sm text-neutral-500">{meta}</p>
-      {note && <p className="mt-2 text-sm text-neutral-700">{note}</p>}
+      <p className="mt-0.5 text-sm text-secondary">{meta}</p>
+      {note && <p className="mt-2 text-sm text-ink">{note}</p>}
       <VideoPlayer spot={spot} />
       {children && <div className="mt-3">{children}</div>}
     </article>

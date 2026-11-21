@@ -38,10 +38,10 @@ export function VideoPlayer({ spot }: Props) {
           if (!counted.current) track(Events.videoPlayed, { spot_id: spot.id });
           counted.current = true;
         }}
-        className="aspect-[9/16] max-h-[65vh] w-full rounded-xl bg-black object-contain"
+        className="aspect-[9/16] max-h-[65vh] w-full rounded-xl bg-ink object-contain"
       />
       {(spot.creator_handle || spot.venue_handle || spot.video_url) && (
-        <p className="mt-2 flex flex-wrap gap-x-3 text-xs text-neutral-500">
+        <p className="mt-2 flex flex-wrap gap-x-3 text-xs text-secondary">
           {spot.creator_handle && (
             <span>
               {t("video.by")}: @{spot.creator_handle}

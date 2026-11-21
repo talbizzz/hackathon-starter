@@ -2,22 +2,23 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #231f20; /* ink */
 }
 
+/* Brand palette from the team palette sheet: ink for text and dark surfaces, brand for the plan and its actions. */
 @theme inline {
+  --color-ink: #231f20;
+  --color-brand: #d63c68;
+  --color-secondary: #666666;
+  --color-muted: #999999;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Light only: there is no dark theme. (The starter template had a dark-mode override that turned inherited text near-white
+   on our white cards for phones set to dark mode.) */
 
 body {
   background: var(--background);

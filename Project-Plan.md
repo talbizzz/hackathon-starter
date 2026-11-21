@@ -31,6 +31,8 @@ From `Project-Raw.md` and the starter repo. Not up for re-decision.
 
 > **Plan updated:** design direction from the team (21 Nov 2026, late evening). The bottom sheet keeps three heights (collapsed, half, full; a two-height version was tried and reverted). Cards in the sheet no longer contain a player: each has a still and a "Video" button that opens a fullscreen viewer (`src/components/reel-viewer.tsx`), one spot per screen with vertical snap scrolling. The viewer starts on the tapped spot and continues with the other visible spots ordered by distance from it. The video on screen plays with sound where the browser allows it and falls back to muted; "Add to plan" is available in the viewer. The plan and voting page still uses the inline player.
 
+> **Plan updated:** brand palette from the team (21 Nov 2026): ink `#231f20`, brand `#d63c68`, secondary grey `#666666`, neutral grey `#999999`, white. Defined as Tailwind theme colours in `src/app/globals.css` (`ink`, `brand`, `secondary`, `muted`). Ink is text and dark surfaces; brand marks the plan: spots added to it, their map pins, the user's vote, and the send and share buttons. The app is light-only; the starter's dark-mode override was removed because it made text unreadable on white cards. Watch-out: an apostrophe inside a comment in `globals.css` silently stops the CSS from compiling with this Tailwind loader.
+
 ## Architecture Decision Records
 
 ### ADR-1: Anonymous identity is a device id in localStorage

@@ -23,10 +23,10 @@ const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt
 function pinHtml(pin: Pin) {
   const tone =
     pin.state === "selected"
-      ? "bg-black text-white border-black"
+      ? "bg-brand text-white border-brand"
       : pin.state === "open"
-        ? "bg-white text-black border-black"
-        : "bg-white text-neutral-500 border-neutral-300";
+        ? "bg-white text-ink border-ink"
+        : "bg-white text-secondary border-neutral-300";
   const name = escapeHtml(pin.name);
   const body = pin.imageUrl
     ? `<img src="${escapeHtml(pin.imageUrl)}" alt="" class="h-16 w-12 rounded-md object-cover" /><span class="block max-w-12 truncate text-center text-[10px] font-semibold">${name}</span>`

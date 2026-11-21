@@ -78,7 +78,7 @@ export function ReelViewer({ spots, statusOf, selected, onToggle, onClose }: Pro
   const round = "flex h-11 w-11 items-center justify-center rounded-full bg-black/50 text-white";
 
   return (
-    <div data-testid="reel-viewer" className="absolute inset-0 z-[1200] bg-black text-white">
+    <div data-testid="reel-viewer" className="absolute inset-0 z-[1200] bg-ink text-white">
       <div ref={scroller} className="h-full snap-y snap-mandatory overflow-y-auto overscroll-contain [scrollbar-width:none]">
         {spots.map((spot, index) => {
           const inPlan = selected.includes(spot.id);
@@ -125,7 +125,7 @@ export function ReelViewer({ spots, statusOf, selected, onToggle, onClose }: Pro
                 <button
                   data-testid="reel-add"
                   onClick={() => onToggle(spot.id)}
-                  className={`pointer-events-auto mt-4 w-full rounded-full px-4 py-3 font-semibold ${inPlan ? "bg-white text-black" : "border-2 border-white text-white"}`}
+                  className={`pointer-events-auto mt-4 w-full rounded-full px-4 py-3 font-semibold ${inPlan ? "border-2 border-brand bg-brand text-white" : "border-2 border-white text-white"}`}
                 >
                   {t(inPlan ? "plan.added" : "plan.add")}
                 </button>

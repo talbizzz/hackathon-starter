@@ -174,7 +174,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
   }
 
   const chip = (active: boolean) =>
-    `shrink-0 rounded-full border px-3 py-1.5 text-sm ${active ? "border-black bg-black text-white" : "border-neutral-300 bg-white"}`;
+    `shrink-0 rounded-full border px-3 py-1.5 text-sm ${active ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white"}`;
 
   const card = (spot: Spot, badge?: string) => (
     <SpotCard
@@ -187,7 +187,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
       <button
         data-testid="add-to-plan"
         onClick={() => toggleSpot(spot.id)}
-        className={`w-full rounded-full px-4 py-2.5 font-medium ${selected.includes(spot.id) ? "bg-black text-white" : "border border-neutral-300"}`}
+        className={`w-full rounded-full px-4 py-2.5 font-medium ${selected.includes(spot.id) ? "bg-brand text-white" : "border border-neutral-300"}`}
       >
         {t(selected.includes(spot.id) ? "plan.added" : "plan.add")}
       </button>
@@ -204,12 +204,12 @@ export function SpotList({ spots }: { spots: Spot[] }) {
 
   const planBar = selected.length > 0 && (
     <div data-testid="plan-bar" className="border-t border-neutral-200 bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
-      {hint && <p className="mb-2 text-center text-sm text-neutral-700">{hint}</p>}
+      {hint && <p className="mb-2 text-center text-sm text-ink">{hint}</p>}
       <div className="flex items-center gap-3">
         <span className="shrink-0 text-sm font-medium">
           {selected.length}/{MAX_SPOTS} {t("plan.picked")}
         </span>
-        <button data-testid="share-plan" onClick={share} className="flex-1 rounded-full bg-black px-4 py-3 font-medium text-white">
+        <button data-testid="share-plan" onClick={share} className="flex-1 rounded-full bg-brand px-4 py-3 font-semibold text-white">
           {t("plan.share")}
         </button>
       </div>
@@ -223,7 +223,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
 
   return (
     // Mobile-first: on a wide screen the app stays a phone-width column, centred on a dark backdrop.
-    <div className="fixed inset-0 bg-neutral-900">
+    <div className="fixed inset-0 bg-ink">
       <div className="relative mx-auto h-full max-w-md overflow-hidden bg-neutral-200">
       <SpotMap pins={pins} onPick={pickFromMap} bottomInset={mapInset} focusId={picked} />
 
@@ -250,7 +250,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
             <div className="flex items-baseline justify-between gap-3 px-4">
               <h1 className="text-xl font-bold tracking-tight">{siteConfig.name}</h1>
               {now && (
-                <p className="text-sm text-neutral-600">
+                <p className="text-sm text-secondary">
                   {visible.length} {t(visible.length === 1 ? "sheet.spot" : "sheet.spots")} · {sections.openNow.length} {t("sheet.openNow")}
                 </p>
               )}
@@ -270,14 +270,14 @@ export function SpotList({ spots }: { spots: Spot[] }) {
           </>
         }
       >
-        <p className="text-neutral-600">{t("app.tagline")}</p>
+        <p className="text-secondary">{t("app.tagline")}</p>
         {now && (
           <>
             {section(t("section.openNow"), sections.openNow.map((s) => card(s)))}
             {section(t("section.later"), sections.later.map(({ spot, at }) => card(spot, `${t("spot.opensAt")} ${at}`)))}
             {section(t("section.tomorrow"), sections.tomorrow.map(({ spot, at }) => card(spot, `${t("spot.sunday")} ${at}`)))}
             {section(t("section.closed"), sections.closed.map((s) => card(s)))}
-            {visible.length === 0 && <p className="py-8 text-center text-sm text-neutral-500">{t("section.empty")}</p>}
+            {visible.length === 0 && <p className="py-8 text-center text-sm text-secondary">{t("section.empty")}</p>}
           </>
         )}
       </BottomSheet>
