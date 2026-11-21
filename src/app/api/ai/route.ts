@@ -2,9 +2,10 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { createClient } from "@/lib/supabase/server";
 import { serverEnv } from "@/lib/env";
+import { bedrockConverse } from "@/lib/bedrock";
 
 // POST /api/ai  body: { prompt: string }  -> streams plain text.
-// Provider is chosen with AI_PROVIDER (anthropic | openai). Keys never leave the server.
+// Provider is chosen with AI_PROVIDER (anthropic | openai | bedrock). Keys never leave the server.
 // Requires a signed-in user so credits can't be drained by strangers.
 export async function POST(req: Request) {
   const supabase = await createClient();
@@ -20,6 +21,18 @@ export async function POST(req: Request) {
   const encoder = new TextEncoder();
 
   try {
+    if (e.AI_PROVIDER === "bedrock") {
+      if (!e.AWS_BEARER_TOKEN_BEDROCK) return new Response("AWS_BEARER_TOKEN_BEDROCK not set", { status: 500 });
+      if (!e.BEDROCK_MODEL) return new Response("BEDROCK_MODEL not set", { status: 500 });
+      const text = await bedrockConverse({
+        token: e.AWS_BEARER_TOKEN_BEDROCK,
+        region: e.AWS_REGION,
+        modelId: e.BEDROCK_MODEL,
+        messages: [{ role: "user", content: [{ text: prompt }] }],
+      });
+      return streamText(async (send) => send(text));
+    }
+
     if (e.AI_PROVIDER === "openai") {
       if (!e.OPENAI_API_KEY) return new Response("OPENAI_API_KEY not set", { status: 500 });
       const openai = new OpenAI({ apiKey: e.OPENAI_API_KEY });

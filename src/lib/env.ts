@@ -10,11 +10,14 @@ const publicSchema = z.object({
 });
 
 const serverSchema = z.object({
-  AI_PROVIDER: z.enum(["anthropic", "openai"]).default("anthropic"),
+  AI_PROVIDER: z.enum(["anthropic", "openai", "bedrock"]).default("anthropic"),
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-5-5"),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default("gpt-4o-mini"),
+  AWS_BEARER_TOKEN_BEDROCK: z.string().optional(),
+  AWS_REGION: z.string().default("us-east-1"),
+  BEDROCK_MODEL: z.string().optional(),
 });
 
 function fail(error: z.ZodError): never {
