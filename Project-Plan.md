@@ -166,6 +166,8 @@ Scraping or re-hosting video; an autoplay feed; visitor accounts; user-submitted
 
 ## Open Technical Risks
 
+> **Plan updated:** embed spike result (21 Nov 2026, iPhone, Instagram in-app browser, production `/embed-test`): TikTok plays inline with sound after one tap. Instagram loads after our tap, then needs a second tap on Instagram's own play button, and plays inline with sound. Desktop Chrome: Instagram plays inline with sound. Not tested: TikTok in-app browser, Android. **Decision: both platforms are embedded inline; no link-out fallback for Instagram.** Consequences for T2.6: the button reads "Load video" for Instagram spots; cap the video height at about 70% of the viewport (a full-width 9:16 frame is taller than the phone screen); the Instagram iframe needs about 720px for its header and footer; Instagram plays once, replay opens Instagram. Curators should prefer TikTok when both exist.
+
 - Instagram reels inside an iframe on mobile may show a poster that opens Instagram instead of playing inline. T1.4 decides; fallback is a "Watch on Instagram" link.
 - `supabase/migrations/20261121010000_traction.sql` has never been executed. T1.1 is the first run.
 - Posts whose owners disabled embedding will show an error inside the iframe; only curation can catch this.

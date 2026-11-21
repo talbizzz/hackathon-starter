@@ -5,7 +5,7 @@
 - [x] T1.1 — Apply the pending tracking migration
 - [ ] T1.2 — Smoke-test signup, tracking and stats locally (scripted checks passed 21 Nov: signup, profile source, event inserts, RLS, stats denied for non-admin; still open: a human makes their account an admin and confirms `/stats` renders)
 - [x] T1.3 — Test runner and CI check
-- [ ] T1.4 — Embed spike on production (page live at `/embed-test`; Instagram plays inline with sound on desktop; still open: phone matrix in the Instagram and TikTok in-app browsers)
+- [x] T1.4 — Embed spike on production (both platforms play inline with sound in the Instagram in-app browser on iPhone; TikTok in-app browser and Android not tested; decision recorded in Project-Plan.md)
 - [x] T1.5 — Language and device helpers
 - [x] T1.6 — Merge and deploy (merged to `main`; deployed with `pnpm deploy` because the repo has no git remote)
 
