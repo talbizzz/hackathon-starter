@@ -29,6 +29,8 @@ From `Project-Raw.md` and the starter repo. Not up for re-decision.
 
 > **Plan updated:** design direction from the team (21 Nov 2026). The home screen is a fullscreen map with the list in a draggable bottom sheet (`src/components/bottom-sheet.tsx`: collapsed, half, full; the list scrolls inside the sheet; the plan bar is the sheet's footer). The app stays a phone-width column on desktop. Spots without a real upload carry a generated sample clip (`public/mock/spot.mp4`, `public/mock/spot.jpg`) so the design can be judged; `/admin` labels them "Sample video" and a real upload replaces it. Before launch, every live spot must have a real video or be unpublished.
 
+> **Plan updated:** design direction from the team (21 Nov 2026, late evening). The bottom sheet keeps three heights (collapsed, half, full; a two-height version was tried and reverted). Cards in the sheet no longer contain a player: each has a still and a "Video" button that opens a fullscreen viewer (`src/components/reel-viewer.tsx`), one spot per screen with vertical snap scrolling. The viewer starts on the tapped spot and continues with the other visible spots ordered by distance from it. The video on screen plays with sound where the browser allows it and falls back to muted; "Add to plan" is available in the viewer. The plan and voting page still uses the inline player.
+
 ## Architecture Decision Records
 
 ### ADR-1: Anonymous identity is a device id in localStorage

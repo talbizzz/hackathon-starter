@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { BottomSheet, halfHeight, type Snap } from "@/components/bottom-sheet";
 import { LangToggle } from "@/components/lang-toggle";
+import { ReelViewer } from "@/components/reel-viewer";
 import { SpotCard } from "@/components/spot-card";
 import { SpotMap, type Pin } from "@/components/spot-map";
 import { Events, getAttribution, track } from "@/lib/analytics";
@@ -53,6 +54,8 @@ export function SpotList({ spots }: { spots: Spot[] }) {
   const [flags, setFlags] = useState<Flag[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [picked, setPicked] = useState<string | null>(null);
+  // Spots in the fullscreen video viewer, in viewing order. Null when it is closed.
+  const [reel, setReel] = useState<Spot[] | null>(null);
   const [snap, setSnap] = useState<Snap>("half");
   // Pixels of the map hidden under the sheet, so pins are framed in the part that stays visible.
   const [mapInset, setMapInset] = useState(() => (typeof window === "undefined" ? 0 : halfHeight()));
@@ -111,6 +114,25 @@ export function SpotList({ spots }: { spots: Spot[] }) {
     [visible, selected, sections, picked],
   );
 
+  // Open the fullscreen videos on one spot; swiping continues with its neighbours, nearest first.
+  function watch(start: Spot) {
+    const distance = (s: Spot) =>
+      s.lat === null || s.lng === null || start.lat === null || start.lng === null
+        ? Infinity
+        : Math.hypot(s.lat - start.lat, (s.lng - start.lng) * Math.cos((start.lat * Math.PI) / 180));
+    const others = visible.filter((s) => s.id !== start.id && s.video_file_url).sort((a, b) => distance(a) - distance(b));
+    setReel([start, ...others]);
+  }
+
+  function statusOf(spot: Spot) {
+    if (sections.openNow.includes(spot)) return t("section.openNow");
+    const later = sections.later.find((x) => x.spot === spot);
+    if (later) return `${t("spot.opensAt")} ${later.at}`;
+    const tomorrow = sections.tomorrow.find((x) => x.spot === spot);
+    if (tomorrow) return `${t("spot.sunday")} ${tomorrow.at}`;
+    return t("status.closed");
+  }
+
   function pickFromMap(id: string) {
     setPicked(id);
     const wasCollapsed = snap === "peek";
@@ -160,11 +182,12 @@ export function SpotList({ spots }: { spots: Spot[] }) {
       spot={spot}
       badge={badge}
       highlighted={selected.includes(spot.id) || picked === spot.id}
+      onWatch={spot.video_file_url ? () => watch(spot) : undefined}
     >
       <button
         data-testid="add-to-plan"
         onClick={() => toggleSpot(spot.id)}
-        className={`w-full rounded-lg px-4 py-2.5 font-medium ${selected.includes(spot.id) ? "bg-black text-white" : "border border-neutral-300"}`}
+        className={`w-full rounded-full px-4 py-2.5 font-medium ${selected.includes(spot.id) ? "bg-black text-white" : "border border-neutral-300"}`}
       >
         {t(selected.includes(spot.id) ? "plan.added" : "plan.add")}
       </button>
@@ -258,6 +281,8 @@ export function SpotList({ spots }: { spots: Spot[] }) {
           </>
         )}
       </BottomSheet>
+
+      {reel && <ReelViewer spots={reel} statusOf={statusOf} selected={selected} onToggle={toggleSpot} onClose={() => setReel(null)} />}
       </div>
     </div>
   );
