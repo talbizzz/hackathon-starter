@@ -71,9 +71,11 @@ export function PlanView({ planId }: { planId: string }) {
   }
 
   const shell = (children: React.ReactNode) => (
-    <div className="mx-auto min-h-screen max-w-md bg-neutral-50 px-4 pb-16">
-      <SiteHeader />
-      {children}
+    <div className="min-h-screen bg-neutral-900">
+      <div className="mx-auto min-h-screen max-w-md bg-neutral-50 px-4 pb-16">
+        <SiteHeader />
+        {children}
+      </div>
     </div>
   );
 

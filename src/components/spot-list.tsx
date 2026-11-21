@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
-import { SiteHeader } from "@/components/site-header";
+import { BottomSheet, halfHeight, type Snap } from "@/components/bottom-sheet";
+import { LangToggle } from "@/components/lang-toggle";
 import { SpotCard } from "@/components/spot-card";
 import { SpotMap, type Pin } from "@/components/spot-map";
 import { Events, getAttribution, track } from "@/lib/analytics";
@@ -52,6 +53,9 @@ export function SpotList({ spots }: { spots: Spot[] }) {
   const [flags, setFlags] = useState<Flag[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [picked, setPicked] = useState<string | null>(null);
+  const [snap, setSnap] = useState<Snap>("half");
+  // Pixels of the map hidden under the sheet, so pins are framed in the part that stays visible.
+  const [mapInset, setMapInset] = useState(() => (typeof window === "undefined" ? 0 : halfHeight()));
   const [hint, setHint] = useState<string | null>(null);
   // The plan saved for the current selection, so sharing twice does not create two plans.
   const [savedPlanId, setSavedPlanId] = useState<string | null>(null);
@@ -109,7 +113,12 @@ export function SpotList({ spots }: { spots: Spot[] }) {
 
   function pickFromMap(id: string) {
     setPicked(id);
-    document.getElementById(`spot-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const wasCollapsed = snap === "peek";
+    if (wasCollapsed) setSnap("half");
+    // Frame the pin above a half-open sheet (fully open, the map is hidden anyway).
+    setMapInset(halfHeight());
+    // Wait for the sheet to open before scrolling its list to the card.
+    setTimeout(() => document.getElementById(`spot-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), wasCollapsed ? 320 : 0);
   }
 
   function toggleSpot(id: string) {
@@ -165,71 +174,91 @@ export function SpotList({ spots }: { spots: Spot[] }) {
   const section = (title: string, cards: React.ReactNode[]) =>
     cards.length > 0 && (
       <>
-        <h2 className="mt-7 text-sm font-semibold uppercase tracking-wide text-neutral-500">{title}</h2>
+        <h2 className="mt-6 text-base font-semibold">{title}</h2>
         <div className="mt-2 space-y-3">{cards}</div>
       </>
     );
 
-  return (
-    <div className="mx-auto min-h-screen max-w-md bg-neutral-50 px-4 pb-40">
-      <SiteHeader />
-      <p className="text-neutral-600">{t("app.tagline")}</p>
+  const planBar = selected.length > 0 && (
+    <div data-testid="plan-bar" className="border-t border-neutral-200 bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+      {hint && <p className="mb-2 text-center text-sm text-neutral-700">{hint}</p>}
+      <div className="flex items-center gap-3">
+        <span className="shrink-0 text-sm font-medium">
+          {selected.length}/{MAX_SPOTS} {t("plan.picked")}
+        </span>
+        <button data-testid="share-plan" onClick={share} className="flex-1 rounded-full bg-black px-4 py-3 font-medium text-white">
+          {t("plan.share")}
+        </button>
+      </div>
+      {savedPlanId && (
+        <Link href={`/p/${savedPlanId}`} className="mt-2 block text-center text-sm font-medium underline">
+          {t("plan.view")}
+        </Link>
+      )}
+    </div>
+  );
 
-      <div className="relative isolate mt-4 h-[46vh] overflow-hidden rounded-2xl border border-neutral-200">
-        <SpotMap pins={pins} onPick={pickFromMap} />
+  return (
+    // Mobile-first: on a wide screen the app stays a phone-width column, centred on a dark backdrop.
+    <div className="fixed inset-0 bg-neutral-900">
+      <div className="relative mx-auto h-full max-w-md overflow-hidden bg-neutral-200">
+      <SpotMap pins={pins} onPick={pickFromMap} bottomInset={mapInset} focusId={picked} />
+
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[1100] flex items-center gap-2 px-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <input
           type="search"
           data-testid="spot-search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t("search.placeholder")}
-          className="absolute inset-x-3 top-3 z-[1000] rounded-full border border-neutral-300 bg-white px-4 py-2.5 shadow-md"
+          className="pointer-events-auto min-w-0 flex-1 rounded-full border border-neutral-300 bg-white px-4 py-3 shadow-md"
         />
-      </div>
-
-      <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
-        {(Object.keys(FLAGS) as Flag[]).map((f) => (
-          <button key={f} onClick={() => setFlags(toggled(flags, f))} className={chip(flags.includes(f))}>
-            {t(`filter.${f}`)}
-          </button>
-        ))}
-        {(Object.keys(CATEGORIES) as Category[]).map((c) => (
-          <button key={c} onClick={() => setCategories(toggled(categories, c))} className={chip(categories.includes(c))}>
-            {CATEGORIES[c]} {t(`cat.${c}`)}
-          </button>
-        ))}
-      </div>
-
-      {now && (
-        <>
-          {section(t("section.openNow"), sections.openNow.map((s) => card(s)))}
-          {section(t("section.later"), sections.later.map(({ spot, at }) => card(spot, `${t("spot.opensAt")} ${at}`)))}
-          {section(t("section.tomorrow"), sections.tomorrow.map(({ spot, at }) => card(spot, `${t("spot.sunday")} ${at}`)))}
-          {section(t("section.closed"), sections.closed.map((s) => card(s)))}
-          {visible.length === 0 && <p className="py-8 text-center text-sm text-neutral-500">{t("section.empty")}</p>}
-        </>
-      )}
-
-      {selected.length > 0 && (
-        <div data-testid="plan-bar" className="fixed inset-x-0 bottom-0 z-[1100] border-t border-neutral-200 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
-          <div className="mx-auto max-w-md">
-            {hint && <p className="mb-2 text-center text-sm text-neutral-700">{hint}</p>}
-            <div className="flex items-center gap-3">
-              <span className="shrink-0 text-sm font-medium">
-                {selected.length}/{MAX_SPOTS} {t("plan.picked")}
-              </span>
-              <button data-testid="share-plan" onClick={share} className="flex-1 rounded-lg bg-black px-4 py-3 font-medium text-white">
-                {t("plan.share")}
-              </button>
-            </div>
-            {savedPlanId && (
-              <Link href={`/p/${savedPlanId}`} className="mt-2 block text-center text-sm font-medium underline">
-                {t("plan.view")}
-              </Link>
-            )}
-          </div>
+        <div className="pointer-events-auto rounded-full bg-white shadow-md">
+          <LangToggle />
         </div>
-      )}
+      </div>
+
+      <BottomSheet
+        snap={snap}
+        onSnap={setSnap}
+        footer={planBar}
+        header={
+          <>
+            <div className="flex items-baseline justify-between gap-3 px-4">
+              <h1 className="text-xl font-bold tracking-tight">{siteConfig.name}</h1>
+              {now && (
+                <p className="text-sm text-neutral-600">
+                  {visible.length} {t(visible.length === 1 ? "sheet.spot" : "sheet.spots")} · {sections.openNow.length} {t("sheet.openNow")}
+                </p>
+              )}
+            </div>
+            <div className="mt-3 flex gap-2 overflow-x-auto px-4 pb-3">
+              {(Object.keys(FLAGS) as Flag[]).map((f) => (
+                <button key={f} onClick={() => setFlags(toggled(flags, f))} className={chip(flags.includes(f))}>
+                  {t(`filter.${f}`)}
+                </button>
+              ))}
+              {(Object.keys(CATEGORIES) as Category[]).map((c) => (
+                <button key={c} onClick={() => setCategories(toggled(categories, c))} className={chip(categories.includes(c))}>
+                  {CATEGORIES[c]} {t(`cat.${c}`)}
+                </button>
+              ))}
+            </div>
+          </>
+        }
+      >
+        <p className="text-neutral-600">{t("app.tagline")}</p>
+        {now && (
+          <>
+            {section(t("section.openNow"), sections.openNow.map((s) => card(s)))}
+            {section(t("section.later"), sections.later.map(({ spot, at }) => card(spot, `${t("spot.opensAt")} ${at}`)))}
+            {section(t("section.tomorrow"), sections.tomorrow.map(({ spot, at }) => card(spot, `${t("spot.sunday")} ${at}`)))}
+            {section(t("section.closed"), sections.closed.map((s) => card(s)))}
+            {visible.length === 0 && <p className="py-8 text-center text-sm text-neutral-500">{t("section.empty")}</p>}
+          </>
+        )}
+      </BottomSheet>
+      </div>
     </div>
   );
 }

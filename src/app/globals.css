@@ -24,3 +24,8 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* The map is fullscreen with a search bar floating over its top edge: keep the map credit clear of it. */
+.leaflet-top.leaflet-right {
+  top: 72px;
+}

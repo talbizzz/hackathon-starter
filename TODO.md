@@ -16,6 +16,8 @@
 - [x] T2.3 — Tracking with device id
 - [ ] T2.4 — Load real spots (5 real spots imported with coordinates; all hidden until a video is uploaded for each at `/admin`; target is still 15+ live before sharing widely)
 - [ ] T2.11 — Self-hosted video (scope change, see Project-Plan.md): native player, `/admin` upload page, storage bucket and access rules are built; anonymous access checks pass; still open: a real admin uploads a video and it plays on a phone
+- [x] T2.12 — Fullscreen map with draggable bottom sheet, phone-width frame on desktop, sample video for spots without an upload
+- [ ] T2.13 — Before launch: replace every sample video with a real one, or unpublish the spot
 - [x] T2.10 — Berlin-wide map home screen (scope change, see Project-Plan.md): map with pins, search, district on cards, import script with coordinate lookup
 - [x] T2.5 — Home page: spot list (added beyond the plan: a "Tomorrow (Sunday)" section on Saturdays)
 - [x] T2.6 — Tap-to-load video

@@ -34,14 +34,28 @@ function pinHtml(pin: Pin) {
   return `<div title="${name}" class="absolute flex -translate-x-1/2 -translate-y-full cursor-pointer items-center gap-1 whitespace-nowrap rounded-full border-2 p-1.5 shadow-md ${pin.imageUrl ? "flex-col rounded-xl p-1" : ""} ${tone}">${body}</div>`;
 }
 
-export function SpotMap({ pins, onPick }: { pins: Pin[]; onPick: (id: string) => void }) {
+type Props = {
+  pins: Pin[];
+  onPick: (id: string) => void;
+  /** How many pixels at the bottom of the map are covered by the sheet. */
+  bottomInset: number;
+  /** The spot to bring into the visible part of the map. */
+  focusId: string | null;
+};
+
+// The search bar, plus the height of a picture pin: pins hang upwards from their location.
+const TOP_INSET = 96 + 100;
+
+export function SpotMap({ pins, onPick, bottomInset, focusId }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const leaflet = useRef<{ L: typeof import("leaflet"); map: LeafletMap; layer: LayerGroup } | null>(null);
   const [ready, setReady] = useState(false);
   const fitted = useRef(false);
   const pick = useRef(onPick);
+  const inset = useRef(bottomInset);
   useEffect(() => {
     pick.current = onPick;
+    inset.current = bottomInset;
   });
 
   // Leaflet needs `window`, so it is loaded in the browser only.
@@ -49,7 +63,8 @@ export function SpotMap({ pins, onPick }: { pins: Pin[]; onPick: (id: string) =>
     let cancelled = false;
     import("leaflet").then(({ default: L }) => {
       if (cancelled || !container.current) return;
-      const map = L.map(container.current, { zoomControl: false }).setView(BERLIN, 11);
+      const map = L.map(container.current, { zoomControl: false, attributionControl: false }).setView(BERLIN, 11);
+      L.control.attribution({ position: "topright", prefix: false }).addTo(map);
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 18,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -79,9 +94,18 @@ export function SpotMap({ pins, onPick }: { pins: Pin[]; onPick: (id: string) =>
     }
     if (!fitted.current && pins.length > 0) {
       fitted.current = true;
-      ctx.map.fitBounds(ctx.L.latLngBounds(pins.map((p) => [p.lat, p.lng])), { paddingTopLeft: [28, 84], paddingBottomRight: [28, 28], maxZoom: 14 });
+      ctx.map.fitBounds(ctx.L.latLngBounds(pins.map((p) => [p.lat, p.lng])), { paddingTopLeft: [32, TOP_INSET], paddingBottomRight: [32, inset.current + 24], maxZoom: 14 });
     }
   }, [ready, pins]);
+
+  // Bring the tapped spot into the part of the map that the sheet and search bar leave visible.
+  useEffect(() => {
+    const ctx = leaflet.current;
+    const pin = pins.find((p) => p.id === focusId);
+    if (!ready || !ctx || !pin) return;
+    ctx.map.panInside([pin.lat, pin.lng], { paddingTopLeft: [40, TOP_INSET], paddingBottomRight: [40, bottomInset + 40] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pan when the focus or the sheet height changes, not on every pin refresh
+  }, [ready, focusId, bottomInset]);
 
   return <div ref={container} data-testid="spot-map" className="h-full w-full bg-neutral-200" />;
 }

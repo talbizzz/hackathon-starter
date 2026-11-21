@@ -104,12 +104,12 @@ export function AdminSpots() {
       </div>
     );
 
-  const live = data.spots.filter((s) => s.video_file_url).length;
+  const live = data.spots.filter((s) => s.video_file_url && !s.video_file_url.startsWith("/mock/")).length;
   return (
     <div>
       <h1 className="text-2xl font-semibold">Spot videos</h1>
       <p className="mt-1 text-sm text-neutral-500">
-        {live} of {data.spots.length} spots are live. A spot appears on the site once it has a video. Upload MP4 (H.264), vertical, under 50 MB,
+        {live} of {data.spots.length} spots have a real video. A spot appears on the site once it has a video. Upload MP4 (H.264), vertical, under 50 MB,
         and only videos you filmed or have permission to host.
       </p>
       <ul className="mt-6 divide-y divide-neutral-200 rounded-2xl border border-neutral-200 bg-white">
@@ -124,7 +124,8 @@ export function AdminSpots() {
             <div className="min-w-0 flex-1">
               <p className="font-medium">{spot.name}</p>
               <p className="text-sm text-neutral-500">
-                {spot.neighbourhood} · {spot.video_file_url ? "Live ✓" : "Hidden: no video yet"}
+                {spot.neighbourhood} ·{" "}
+                {!spot.video_file_url ? "Hidden: no video yet" : spot.video_file_url.startsWith("/mock/") ? "Sample video: replace before launch" : "Live ✓"}
               </p>
               {message?.spotId === spot.id && <p className="mt-1 text-sm text-neutral-800">{message.text}</p>}
             </div>
