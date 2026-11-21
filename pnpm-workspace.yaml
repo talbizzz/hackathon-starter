@@ -5,3 +5,6 @@ allowBuilds:
   workerd: true
   core-js: false
   supabase: true
+overrides:
+  # OpenNext 4.2.0 bundles `cookie.default.parse`, which crashes with cookie 1.x (Worker error 1101 on any request with a Cookie header)
+  "@opennextjs/aws>cookie": "0.7.2"
