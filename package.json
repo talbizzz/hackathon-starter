@@ -12,6 +12,7 @@
     "db:push": "supabase db push --remote --yes",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy:dev": "NEXT_PUBLIC_SITE_URL=https://hackathon-starter-dev.a-talbi890.workers.dev opennextjs-cloudflare build && wrangler deploy --name hackathon-starter-dev",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
