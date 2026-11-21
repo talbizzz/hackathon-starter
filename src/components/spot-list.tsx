@@ -1,15 +1,17 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { BottomSheet, halfHeight, type Snap } from "@/components/bottom-sheet";
 import { LangToggle } from "@/components/lang-toggle";
+import { PlanSetup, type PlanConfig } from "@/components/plan-setup";
 import { ReelViewer } from "@/components/reel-viewer";
 import { SpotCard } from "@/components/spot-card";
 import { SpotMap, type Pin } from "@/components/spot-map";
 import { Events, getAttribution, track } from "@/lib/analytics";
 import { getDeviceId, uuid } from "@/lib/device";
 import { env } from "@/lib/env";
+import { useFavorites } from "@/lib/favorites";
 import { useT } from "@/lib/i18n";
 import { shareLink } from "@/lib/share";
 import { isOpenNow, opensLaterToday, opensTomorrow, type Spot } from "@/lib/spots";
@@ -23,7 +25,6 @@ const FLAGS = {
   cheap: (s: Spot) => s.price <= 1,
 } as const;
 type Flag = keyof typeof FLAGS;
-const MAX_SPOTS = 3;
 
 // The current minute, null on the server so opening hours are only evaluated in the browser.
 const subscribeClock = (tick: () => void) => {
@@ -38,6 +39,13 @@ function toggled<T>(list: T[], item: T) {
 
 export function SpotList({ spots }: { spots: Spot[] }) {
   const { t } = useT();
+  const router = useRouter();
+  const favorites = useFavorites();
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
+  // Browsing by default. A plan starts from the setup screen, and only then can spots be added.
+  const [plan, setPlan] = useState<PlanConfig | null>(null);
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [sending, setSending] = useState(false);
   const minute = useSyncExternalStore(subscribeClock, currentMinute, () => null);
   const [search, setSearch] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
@@ -50,8 +58,6 @@ export function SpotList({ spots }: { spots: Spot[] }) {
   // Pixels of the map hidden under the sheet, so pins are framed in the part that stays visible.
   const [mapInset, setMapInset] = useState(() => (typeof window === "undefined" ? 0 : halfHeight()));
   const [hint, setHint] = useState<string | null>(null);
-  // The plan saved for the current selection, so sharing twice does not create two plans.
-  const [savedPlanId, setSavedPlanId] = useState<string | null>(null);
 
   const now = useMemo(() => (minute === null ? null : new Date(minute * 60_000)), [minute]);
 
@@ -59,6 +65,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
     const query = search.trim().toLowerCase();
     return spots.filter(
       (s) =>
+        (!onlyFavorites || favorites.ids.includes(s.id)) &&
         (categories.length === 0 || categories.includes(s.category)) &&
         flags.every((f) => FLAGS[f](s)) &&
         (!query ||
@@ -66,7 +73,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
             field?.toLowerCase().includes(query),
           )),
     );
-  }, [spots, search, categories, flags, t]);
+  }, [spots, search, categories, flags, onlyFavorites, favorites.ids, t]);
 
   // Each visible spot lands in exactly one section.
   const sections = useMemo(() => {
@@ -133,34 +140,50 @@ export function SpotList({ spots }: { spots: Spot[] }) {
     setTimeout(() => document.getElementById(`spot-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), wasCollapsed ? 320 : 0);
   }
 
-  function toggleSpot(id: string) {
-    if (!selected.includes(id) && selected.length >= MAX_SPOTS) return setHint(t("plan.max"));
+  function startPlan(config: PlanConfig) {
+    setPlan(config);
+    setSetupOpen(false);
+    setSelected([]);
     setHint(null);
-    setSavedPlanId(null);
+    track(Events.planStarted, config);
+  }
+
+  function cancelPlan() {
+    setPlan(null);
+    setSelected([]);
+    setHint(null);
+  }
+
+  function toggleSpot(id: string) {
+    if (!plan) return;
+    if (!selected.includes(id) && selected.length >= plan.choices) return setHint(t("plan.max"));
+    setHint(null);
     setSelected(toggled(selected, id));
   }
 
+  // Save the plan, hand the link to the share sheet, then go to the plan page to vote.
   async function share() {
+    if (!plan || sending) return;
+    if (selected.length === 0) return setHint(t("plan.pickFirst"));
     track(Events.shareTapped);
     setHint(null);
-    const id = savedPlanId ?? uuid();
+    setSending(true);
+    const id = uuid();
     const url = `${env.NEXT_PUBLIC_SITE_URL}/p/${id}?utm_source=share`;
     // Open the share sheet right away (it must run inside the tap) and save the plan in parallel.
     const sharing = shareLink({ title: siteConfig.name, text: t("plan.shareText"), url });
-    if (!savedPlanId) {
-      const { error } = await createClient()
-        .from("plans")
-        .insert({ id, spot_ids: selected, device_id: getDeviceId(), source: getAttribution().source });
-      if (error) {
-        await sharing;
-        return setHint(t("plan.error"));
-      }
-      track(Events.planCreated, { plan_id: id, spots: selected.length });
-      setSavedPlanId(id);
+    const { error } = await createClient()
+      .from("plans")
+      .insert({ id, spot_ids: selected, participants: plan.participants, device_id: getDeviceId(), source: getAttribution().source });
+    if (error) {
+      await sharing;
+      setSending(false);
+      return setHint(t("plan.error"));
     }
-    const result = await sharing;
-    if (result === "copied") setHint(t("plan.copied"));
-    if (result === "failed") setHint(t("share.failed"));
+    track(Events.planCreated, { plan_id: id, spots: selected.length, participants: plan.participants });
+    // Go to the plan page to vote. Do not wait on a share sheet that stays open: it sits on top of the new page.
+    const result = await Promise.race([sharing, new Promise<"open">((resolve) => setTimeout(() => resolve("open"), 1500))]);
+    router.push(`/p/${id}${result === "copied" || result === "failed" ? `?s=${result}` : ""}`);
   }
 
   const chip = (active: boolean) =>
@@ -173,14 +196,17 @@ export function SpotList({ spots }: { spots: Spot[] }) {
       badge={badge}
       highlighted={picked === spot.id}
       onWatch={spot.video_file_url ? () => watch(spot) : undefined}
+      favorite={{ on: favorites.ids.includes(spot.id), toggle: () => favorites.toggle(spot.id) }}
     >
-      <button
-        data-testid="add-to-plan"
-        onClick={() => toggleSpot(spot.id)}
-        className={`w-full rounded-full px-4 py-2.5 font-medium ${selected.includes(spot.id) ? "bg-brand text-white" : "border border-neutral-300"}`}
-      >
-        {t(selected.includes(spot.id) ? "plan.added" : "plan.add")}
-      </button>
+      {plan && (
+        <button
+          data-testid="add-to-plan"
+          onClick={() => toggleSpot(spot.id)}
+          className={`w-full rounded-full px-4 py-2.5 font-medium ${selected.includes(spot.id) ? "bg-brand text-white" : "border border-neutral-300"}`}
+        >
+          {t(selected.includes(spot.id) ? "plan.added" : "plan.add")}
+        </button>
+      )}
     </SpotCard>
   );
 
@@ -192,21 +218,33 @@ export function SpotList({ spots }: { spots: Spot[] }) {
       </>
     );
 
-  const planBar = selected.length > 0 && (
+  // The sheet's footer: an invitation to start a plan, or the plan being built.
+  const footer = (
     <div data-testid="plan-bar" className="border-t border-neutral-200 bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
-      {hint && <p className="mb-2 text-center text-sm text-ink">{hint}</p>}
-      <div className="flex items-center gap-3">
-        <span className="shrink-0 text-sm font-medium">
-          {selected.length}/{MAX_SPOTS} {t("plan.picked")}
-        </span>
-        <button data-testid="share-plan" onClick={share} className="flex-1 rounded-full bg-brand px-4 py-3 font-semibold text-white">
-          {t("plan.share")}
+      {!plan ? (
+        <button data-testid="start-plan" onClick={() => setSetupOpen(true)} className="w-full rounded-full bg-brand px-4 py-3 font-semibold text-white">
+          {t("home.start")}
         </button>
-      </div>
-      {savedPlanId && (
-        <Link href={`/p/${savedPlanId}`} className="mt-2 block text-center text-sm font-medium underline">
-          {t("plan.view")}
-        </Link>
+      ) : (
+        <>
+          {hint && <p className="mb-2 text-center text-sm text-ink">{hint}</p>}
+          <div className="flex items-center gap-3">
+            <span className="shrink-0 text-sm font-medium">
+              {selected.length}/{plan.choices} {t("plan.picked")}
+            </span>
+            <button
+              data-testid="share-plan"
+              onClick={share}
+              disabled={sending}
+              className={`flex-1 rounded-full px-4 py-3 font-semibold text-white ${selected.length > 0 ? "bg-brand" : "bg-muted"}`}
+            >
+              {t("plan.share")}
+            </button>
+          </div>
+          <button data-testid="cancel-plan" onClick={cancelPlan} className="mt-2 block w-full text-center text-sm text-secondary underline">
+            {t("plan.cancel")}
+          </button>
+        </>
       )}
     </div>
   );
@@ -234,7 +272,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
       <BottomSheet
         snap={snap}
         onSnap={setSnap}
-        footer={planBar}
+        footer={footer}
         header={
           <>
             <div className="flex items-baseline justify-between gap-3 px-4">
@@ -246,6 +284,9 @@ export function SpotList({ spots }: { spots: Spot[] }) {
               )}
             </div>
             <div className="mt-3 flex gap-2 overflow-x-auto px-4 pb-3">
+              <button data-testid="filter-favorites" onClick={() => setOnlyFavorites(!onlyFavorites)} className={chip(onlyFavorites)}>
+                {t("filter.favs")}
+              </button>
               {(Object.keys(FLAGS) as Flag[]).map((f) => (
                 <button key={f} onClick={() => setFlags(toggled(flags, f))} className={chip(flags.includes(f))}>
                   {t(`filter.${f}`)}
@@ -272,7 +313,16 @@ export function SpotList({ spots }: { spots: Spot[] }) {
         )}
       </BottomSheet>
 
-      {reel && <ReelViewer spots={reel} statusOf={statusOf} selected={selected} onToggle={toggleSpot} onClose={() => setReel(null)} />}
+      {reel && (
+        <ReelViewer
+          spots={reel}
+          statusOf={statusOf}
+          favorites={favorites}
+          action={plan ? { isOn: (id) => selected.includes(id), toggle: toggleSpot, onLabel: t("plan.added"), offLabel: t("plan.add") } : undefined}
+          onClose={() => setReel(null)}
+        />
+      )}
+      {setupOpen && <PlanSetup onStart={startPlan} onClose={() => setSetupOpen(false)} />}
       </div>
     </div>
   );

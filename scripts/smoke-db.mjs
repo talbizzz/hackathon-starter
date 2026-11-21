@@ -21,9 +21,9 @@ check("anon cannot list plans", !hiddenPlans.data?.length);
 const hiddenVotes = await db.from("votes").select("id").limit(1);
 check("anon cannot list votes", !hiddenVotes.data?.length);
 
-const fakeIds = [1, 2, 3, 4].map(() => crypto.randomUUID());
+const fakeIds = Array.from({ length: 11 }, () => crypto.randomUUID());
 const tooMany = await db.from("plans").insert({ id: crypto.randomUUID(), spot_ids: fakeIds, device_id: crypto.randomUUID() });
-check("plan with four spots is rejected", !!tooMany.error);
+check("plan with eleven spots is rejected", !!tooMany.error);
 
 if (!spots.data?.length) {
   console.log("skip plan + vote checks: no published spots yet");
@@ -31,7 +31,7 @@ if (!spots.data?.length) {
   const planId = crypto.randomUUID();
   const device = crypto.randomUUID();
   const spotId = spots.data[0].id;
-  const plan = await db.from("plans").insert({ id: planId, spot_ids: [spotId], device_id: device, source: "smoke-test" });
+  const plan = await db.from("plans").insert({ id: planId, spot_ids: [spotId], device_id: device, participants: 2, source: "smoke-test" });
   check("anon can create a plan", !plan.error, plan.error?.message);
 
   const first = await db.rpc("cast_vote", { p_plan_id: planId, p_spot_id: spotId, p_device_id: device, p_name: "First" });
@@ -42,6 +42,9 @@ if (!spots.data?.length) {
     !second.error && second.data?.total_votes === 1 && second.data?.spots?.[0]?.voters?.[0] === "Second" && second.data?.my_vote === spotId,
     second.error?.message ?? JSON.stringify(second.data),
   );
+  check("one vote of two: not finalized yet", second.data?.participants === 2 && second.data?.finalized === false);
+  const other = await db.rpc("cast_vote", { p_plan_id: planId, p_spot_id: spotId, p_device_id: crypto.randomUUID(), p_name: "Third" });
+  check("second voter finalizes the plan", !other.error && other.data?.total_votes === 2 && other.data?.finalized === true, other.error?.message);
   const wrong = await db.rpc("cast_vote", { p_plan_id: planId, p_spot_id: crypto.randomUUID(), p_device_id: device, p_name: "X" });
   check("vote for a spot outside the plan is rejected", !!wrong.error);
 }

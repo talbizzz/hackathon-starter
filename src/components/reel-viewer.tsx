@@ -3,15 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 import { Events, track } from "@/lib/analytics";
 import { useT } from "@/lib/i18n";
+import { HeartButton } from "@/components/heart-button";
 import type { Spot } from "@/lib/spots";
 
-type Props = {
-  /** In viewing order: the opened spot first, then its neighbours by distance. */
-  spots: Spot[];
+/** The fields the viewer needs, so it works for spots on the map and for spots in a plan. */
+export type ReelSpot = Omit<Spot, "published" | "created_at">;
+
+type Props<S extends ReelSpot> = {
+  /** In viewing order: the opened spot first, then the others. */
+  spots: S[];
   /** Short status per spot, e.g. "Open now" or "Opens at 10:00". */
-  statusOf: (spot: Spot) => string | undefined;
-  selected: string[];
-  onToggle: (id: string) => void;
+  statusOf?: (spot: S) => string | undefined;
+  /** The spot's main action, e.g. add to plan or choose. Left out, there is no action button. */
+  action?: { isOn: (id: string) => boolean; toggle: (id: string) => void; onLabel: string; offLabel: string };
+  favorites?: { ids: string[]; toggle: (id: string) => void };
   onClose: () => void;
 };
 
@@ -19,7 +24,7 @@ const icon = "h-6 w-6 fill-none stroke-current stroke-2";
 
 // Fullscreen videos, one spot per screen. Swipe up or down to move between neighbouring spots.
 // The video on screen plays (with sound where the browser allows it); the others are paused.
-export function ReelViewer({ spots, statusOf, selected, onToggle, onClose }: Props) {
+export function ReelViewer<S extends ReelSpot>({ spots, statusOf, action, favorites, onClose }: Props<S>) {
   const { t, lang } = useT();
   const scroller = useRef<HTMLDivElement>(null);
   const videos = useRef(new Map<string, HTMLVideoElement>());
@@ -81,10 +86,10 @@ export function ReelViewer({ spots, statusOf, selected, onToggle, onClose }: Pro
     <div data-testid="reel-viewer" className="absolute inset-0 z-[1200] bg-ink text-white">
       <div ref={scroller} className="h-full snap-y snap-mandatory overflow-y-auto overscroll-contain [scrollbar-width:none]">
         {spots.map((spot, index) => {
-          const inPlan = selected.includes(spot.id);
+          const isOn = action?.isOn(spot.id) ?? false;
           const note = lang === "de" ? (spot.note_de ?? spot.note_en) : (spot.note_en ?? spot.note_de);
           const price = spot.price === 0 ? t("price.free") : "€".repeat(spot.price);
-          const status = statusOf(spot);
+          const status = statusOf?.(spot);
           return (
             <section key={spot.id} data-spot={spot.id} data-testid="reel-item" className="relative h-full snap-start snap-always">
               <video
@@ -110,7 +115,14 @@ export function ReelViewer({ spots, statusOf, selected, onToggle, onClose }: Pro
               )}
               {/* A dark fade so the white text stays readable on any video. */}
               <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-24">
-                <h2 className="text-2xl font-bold tracking-tight">{spot.name}</h2>
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-2xl font-bold tracking-tight">{spot.name}</h2>
+                  {favorites && (
+                    <span className="pointer-events-auto">
+                      <HeartButton onDark on={favorites.ids.includes(spot.id)} onClick={() => favorites.toggle(spot.id)} />
+                    </span>
+                  )}
+                </div>
                 <p className="mt-1 text-sm text-white/85">
                   {[status, t(`cat.${spot.category}`), spot.neighbourhood, price].filter(Boolean).join(" · ")}
                 </p>
@@ -122,13 +134,15 @@ export function ReelViewer({ spots, statusOf, selected, onToggle, onClose }: Pro
                       .join(" · ")}
                   </p>
                 )}
-                <button
-                  data-testid="reel-add"
-                  onClick={() => onToggle(spot.id)}
-                  className={`pointer-events-auto mt-4 w-full rounded-full px-4 py-3 font-semibold ${inPlan ? "border-2 border-brand bg-brand text-white" : "border-2 border-white text-white"}`}
-                >
-                  {t(inPlan ? "plan.added" : "plan.add")}
-                </button>
+                {action && (
+                  <button
+                    data-testid="reel-add"
+                    onClick={() => action.toggle(spot.id)}
+                    className={`pointer-events-auto mt-4 w-full rounded-full px-4 py-3 font-semibold ${isOn ? "border-2 border-brand bg-brand text-white" : "border-2 border-white text-white"}`}
+                  >
+                    {isOn ? action.onLabel : action.offLabel}
+                  </button>
+                )}
                 {index === 0 && spots.length > 1 && <p className="mt-3 text-center text-xs text-white/70">{t("reel.swipe")}</p>}
               </div>
             </section>

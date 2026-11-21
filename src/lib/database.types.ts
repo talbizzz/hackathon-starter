@@ -62,6 +62,7 @@ export type Database = {
           device_id: string
           id: string
           neighbourhood: string | null
+          participants: number
           source: string | null
           spot_ids: string[]
         }
@@ -70,6 +71,7 @@ export type Database = {
           device_id: string
           id: string
           neighbourhood?: string | null
+          participants?: number
           source?: string | null
           spot_ids: string[]
         }
@@ -78,6 +80,7 @@ export type Database = {
           device_id?: string
           id?: string
           neighbourhood?: string | null
+          participants?: number
           source?: string | null
           spot_ids?: string[]
         }

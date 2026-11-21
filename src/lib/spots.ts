@@ -4,7 +4,16 @@ import type { Database } from "@/lib/database.types";
 export type Spot = Database["public"]["Tables"]["spots"]["Row"];
 /** What get_plan / cast_vote return (see supabase/migrations/20261121020000_core.sql). */
 export type PlanSpot = Omit<Spot, "published" | "created_at"> & { votes: number; voters: string[] };
-export type Plan = { id: string; created_at: string; my_vote: string | null; total_votes: number; spots: PlanSpot[] };
+export type Plan = {
+  id: string;
+  created_at: string;
+  /** How many people are deciding. The plan is finalized once that many votes are in. */
+  participants: number;
+  total_votes: number;
+  finalized: boolean;
+  my_vote: string | null;
+  spots: PlanSpot[];
+};
 
 /** Opening hours as Postgres `time` strings ("HH:MM" or "HH:MM:SS"). A null open time means closed that day. */
 export type Hours = {

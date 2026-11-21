@@ -12,6 +12,8 @@ export const Events = {
   // Keep the value "core_action": /stats counts users with this event as real users.
   coreAction: "core_action",
   videoPlayed: "video_played",
+  planStarted: "plan_started",
+  favoriteAdded: "favorite_added",
   planCreated: "plan_created",
   shareTapped: "share_tapped",
   planOpened: "plan_opened",
