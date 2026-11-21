@@ -192,7 +192,7 @@ Add to `Events`: `videoPlayed: "video_played"`, `planCreated: "plan_created"`, `
 
 - **Depends on:** T2.5, T2.6, T2.7, T2.8
 - **Area:** infra
-- **What:** Commit, push to `main`, wait for the deploy. Run the full flow on real phones against production, needs the teammates: one creates a plan from inside the Instagram in-app browser and shares it to the team group chat; the other two vote. Hand the production link with `utm_source` conventions to the marketing teammate.
+- **What:** Commit on `main`, run `pnpm test`, then `pnpm deploy` (there is no git remote; see the plan update in `Project-Plan.md`). Run the full flow on real phones against production, needs the teammates: one creates a plan from inside the Instagram in-app browser and shares it to the team group chat; the other two vote. Hand the production link with `utm_source` conventions to the marketing teammate.
 - **Tests (write first):** production checklist: list loads in under 3 seconds on mobile data; German phone shows German copy; video plays after one tap; plan link opens from WhatsApp; three votes appear on all phones; directions open Google Maps; `/stats` shows the visits; the `events` table has `plan_created` and `vote_cast` rows with distinct `anon_id` values.
 - **Done when:** every checklist item holds on production and the team has started sharing the link.
 

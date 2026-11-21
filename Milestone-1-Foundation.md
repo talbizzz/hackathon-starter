@@ -2,6 +2,8 @@
 
 Target: done by Saturday 21:45 Berlin time.
 
+> **Plan updated:** no git remote exists, so T1.6 deployed with `pnpm deploy` instead of a push; the tracking migration turned out to be applied already (21 Nov 2026).
+
 ## Goal
 
 The pending tracking work is live on production, the embed approach is proven on real phones inside the Instagram and TikTok in-app browsers, and test and language scaffolding exist.

@@ -9,7 +9,11 @@ From `Project-Raw.md` and the starter repo. Not up for re-decision.
 - Build inside this repo (`/Users/aziztalbi/hackathon-starter`). Next.js 16 App Router, TypeScript, Tailwind, Supabase (Postgres, Auth, RLS), TanStack Query, PostHog, Cloudflare Workers via OpenNext, pnpm only.
 - `AGENTS.md` rule: read the relevant guide in `node_modules/next/dist/docs/` before writing Next code. Middleware file is `src/proxy.ts`.
 - Workers: Web APIs and `fetch` only. No Node-only libraries in app code.
-- Environments: local dev and production only. Push to `main` deploys (`.github/workflows/deploy.yml`). "Deployed" in this plan always means production.
+- Environments: local dev and production only. "Deployed" in this plan always means production.
+
+> **Plan updated:** the repo has no git remote, so the GitHub Actions workflow never runs. Deploy with `pnpm deploy` from the engineer's machine (wrangler is logged in); run `pnpm test` first by hand. Production URL: `https://hackathon-starter.a-talbi890.workers.dev`. Wherever a milestone says "push to `main`", read "commit on `main`, then `pnpm deploy`". (21 Nov 2026)
+
+> **Plan updated:** `supabase/migrations/20261121010000_traction.sql` was already applied to the live database when Milestone 1 started; the generated types match the hand-edited ones and a scripted signup smoke test passed. (21 Nov 2026)
 - Tracking from branch `traction-tracking`: `track()` in `src/lib/analytics.ts` writes to PostHog and the Supabase `events` table with first-touch `source` and `campaign`; `/stats` is admin-only. Migration `supabase/migrations/20261121010000_traction.sql` is written but not applied.
 - Visitors never need an account. Existing auth stays for admins (`/stats`) only.
 - Web only, mobile-first, must work inside the Instagram and TikTok in-app browsers.
