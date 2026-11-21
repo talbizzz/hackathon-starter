@@ -16,6 +16,7 @@ export type Pin = {
 };
 
 const BERLIN: [number, number] = [52.5, 13.4];
+const AREA_ZOOM = 14; // a neighbourhood fills the screen
 // The city with a margin, more of it to the south: the sheet covers the lower part of the map,
 // so southern spots must still be able to sit above it.
 const BERLIN_BOUNDS: [[number, number], [number, number]] = [
@@ -48,12 +49,14 @@ type Props = {
   bottomInset: number;
   /** The spot to bring into the visible part of the map. */
   focusId: string | null;
+  /** A part of the city to show, or null for the whole city. */
+  area: { lat: number; lng: number } | null;
 };
 
 // The search bar, plus the height of a tapped picture pin with its name: pins hang upwards from their location.
 const TOP_INSET = 96 + 130;
 
-export function SpotMap({ pins, onPick, bottomInset, focusId }: Props) {
+export function SpotMap({ pins, onPick, bottomInset, focusId, area }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const leaflet = useRef<{ L: typeof import("leaflet"); map: LeafletMap; layer: LayerGroup } | null>(null);
   const [ready, setReady] = useState(false);
@@ -122,6 +125,23 @@ export function SpotMap({ pins, onPick, bottomInset, focusId }: Props) {
     ctx.map.panInside([pin.lat, pin.lng], { paddingTopLeft: [40, TOP_INSET], paddingBottomRight: [40, bottomInset + 40] });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- pan when the focus or the sheet height changes, not on every pin refresh
   }, [ready, focusId, bottomInset]);
+
+  // Show the chosen part of the city, centred in the strip of map between the search bar and the sheet.
+  // Clearing the area goes back to framing every pin.
+  const hadArea = useRef(false);
+  useEffect(() => {
+    const ctx = leaflet.current;
+    if (!ready || !ctx) return;
+    if (area) {
+      hadArea.current = true;
+      const centre = ctx.map.project([area.lat, area.lng], AREA_ZOOM).add([0, (inset.current - 72) / 2]);
+      ctx.map.setView(ctx.map.unproject(centre, AREA_ZOOM), AREA_ZOOM, { animate: true });
+    } else if (hadArea.current && pins.length > 0) {
+      hadArea.current = false;
+      ctx.map.fitBounds(ctx.L.latLngBounds(pins.map((p) => [p.lat, p.lng])), { paddingTopLeft: [32, TOP_INSET], paddingBottomRight: [32, inset.current + 24], maxZoom: 14 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- move only when the chosen area changes
+  }, [ready, area]);
 
   return <div ref={container} data-testid="spot-map" className="h-full w-full bg-neutral-200" />;
 }

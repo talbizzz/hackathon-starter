@@ -4,11 +4,13 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { BottomSheet, halfHeight, type Snap } from "@/components/bottom-sheet";
 import { LangToggle } from "@/components/lang-toggle";
+import { LocationSearch } from "@/components/location-search";
 import { PlanSetup, type PlanConfig } from "@/components/plan-setup";
 import { ReelViewer } from "@/components/reel-viewer";
 import { SpotCard } from "@/components/spot-card";
 import { SpotMap, type Pin } from "@/components/spot-map";
 import { Events, getAttribution, track } from "@/lib/analytics";
+import type { Area } from "@/lib/areas";
 import { getDeviceId, uuid } from "@/lib/device";
 import { env } from "@/lib/env";
 import { useFavorites } from "@/lib/favorites";
@@ -48,6 +50,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
   const [sending, setSending] = useState(false);
   const minute = useSyncExternalStore(subscribeClock, currentMinute, () => null);
   const [search, setSearch] = useState("");
+  const [area, setArea] = useState<Area | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
   const [flags, setFlags] = useState<Flag[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
@@ -127,6 +130,15 @@ export function SpotList({ spots }: { spots: Spot[] }) {
     const tomorrow = sections.tomorrow.find((x) => x.spot === spot);
     if (tomorrow) return `${t("spot.sunday")} ${tomorrow.at}`;
     return t("status.closed");
+  }
+
+  // Move the map to a part of the city. The sheet steps down if it is covering the map.
+  function showArea(next: Area | null) {
+    setArea(next);
+    setPicked(null);
+    if (snap === "full") setSnap("half");
+    setMapInset(halfHeight());
+    if (next) track(Events.areaPicked, { area: next.name });
   }
 
   function pickFromMap(id: string | null) {
@@ -253,17 +265,10 @@ export function SpotList({ spots }: { spots: Spot[] }) {
     // Mobile-first: on a wide screen the app stays a phone-width column, centred on a dark backdrop.
     <div className="fixed inset-0 bg-ink">
       <div className="relative mx-auto h-full max-w-md overflow-hidden bg-neutral-200">
-      <SpotMap pins={pins} onPick={pickFromMap} bottomInset={mapInset} focusId={picked} />
+      <SpotMap pins={pins} onPick={pickFromMap} bottomInset={mapInset} focusId={picked} area={area} />
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[1100] flex items-center gap-2 px-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-        <input
-          type="search"
-          data-testid="spot-search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t("search.placeholder")}
-          className="pointer-events-auto min-w-0 flex-1 rounded-full border border-neutral-300 bg-white px-4 py-3 shadow-md"
-        />
+        <LocationSearch area={area} onPick={showArea} />
         <div className="pointer-events-auto rounded-full bg-white shadow-md">
           <LangToggle />
         </div>
@@ -282,6 +287,16 @@ export function SpotList({ spots }: { spots: Spot[] }) {
                   {visible.length} {t(visible.length === 1 ? "sheet.spot" : "sheet.spots")} · {sections.openNow.length} {t("sheet.openNow")}
                 </p>
               )}
+            </div>
+            <div className="mt-3 px-4">
+              <input
+                type="search"
+                data-testid="spot-search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t("search.placeholder")}
+                className="w-full rounded-full border border-neutral-300 bg-neutral-50 px-4 py-2.5"
+              />
             </div>
             <div className="mt-3 flex gap-2 overflow-x-auto px-4 pb-3">
               <button data-testid="filter-favorites" onClick={() => setOnlyFavorites(!onlyFavorites)} className={chip(onlyFavorites)}>

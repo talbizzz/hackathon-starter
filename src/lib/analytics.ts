@@ -14,6 +14,7 @@ export const Events = {
   videoPlayed: "video_played",
   planStarted: "plan_started",
   favoriteAdded: "favorite_added",
+  areaPicked: "area_picked",
   planCreated: "plan_created",
   shareTapped: "share_tapped",
   planOpened: "plan_opened",
