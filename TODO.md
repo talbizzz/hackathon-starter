@@ -14,7 +14,8 @@
 - [x] T2.1 — Core migration and database smoke script
 - [x] T2.2 — Opening-hours, video and maps logic (Spot and Plan types still to add once the migration is applied)
 - [x] T2.3 — Tracking with device id
-- [ ] T2.4 — Load real spots (three TEST spots are in the live database for development; delete them when the curators' CSV is imported)
+- [ ] T2.4 — Load real spots (5 real spots imported with coordinates, TEST spots deleted; target is still 15+ before sharing widely)
+- [x] T2.10 — Berlin-wide map home screen (scope change, see Project-Plan.md): map with pins, search, district on cards, import script with coordinate lookup
 - [x] T2.5 — Home page: spot list (added beyond the plan: a "Tomorrow (Sunday)" section on Saturdays)
 - [x] T2.6 — Tap-to-load video
 - [x] T2.7 — Create and share a plan (share sheet opens in the same tap while the plan saves; native share sheet only verifiable on a phone)

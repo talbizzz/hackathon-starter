@@ -1,21 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SpotCard } from "@/components/spot-card";
+import { SpotMap, type Pin } from "@/components/spot-map";
 import { Events, getAttribution, track } from "@/lib/analytics";
 import { getDeviceId } from "@/lib/device";
 import { env } from "@/lib/env";
 import { useT } from "@/lib/i18n";
 import { shareLink } from "@/lib/share";
 import { isOpenNow, opensLaterToday, opensTomorrow, type Spot } from "@/lib/spots";
-import { setStored, useStored } from "@/lib/stored";
 import { createClient } from "@/lib/supabase/client";
 import { siteConfig } from "@/lib/site-config";
 
-const HOODS = ["neukoelln", "kreuzberg"] as const;
-const CATEGORIES = ["food", "drinks", "market", "culture", "sport", "outdoors", "nightlife", "other"] as const;
+const CATEGORIES = {
+  food: "🍜",
+  drinks: "🍸",
+  market: "🧺",
+  culture: "🎨",
+  sport: "🧗",
+  outdoors: "🌳",
+  nightlife: "🪩",
+  other: "✨",
+} as const;
+type Category = keyof typeof CATEGORIES;
 const FLAGS = {
   indoor: (s: Spot) => s.indoor,
   free: (s: Spot) => s.price === 0,
@@ -38,37 +47,71 @@ function toggled<T>(list: T[], item: T) {
 export function SpotList({ spots }: { spots: Spot[] }) {
   const { t } = useT();
   const minute = useSyncExternalStore(subscribeClock, currentMinute, () => null);
-  const hood = useStored("hood") === "kreuzberg" ? "kreuzberg" : "neukoelln";
+  const [search, setSearch] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [flags, setFlags] = useState<Flag[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [openVideo, setOpenVideo] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string | null>(null);
   const [hint, setHint] = useState<string | null>(null);
   // The plan saved for the current selection, so sharing twice does not create two plans.
   const [savedPlanId, setSavedPlanId] = useState<string | null>(null);
 
-  const now = minute === null ? null : new Date(minute * 60_000);
-  const visible = spots.filter(
-    (s) =>
-      s.neighbourhood === hood &&
-      (categories.length === 0 || categories.includes(s.category)) &&
-      flags.every((f) => FLAGS[f](s)),
+  const now = useMemo(() => (minute === null ? null : new Date(minute * 60_000)), [minute]);
+
+  const visible = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return spots.filter(
+      (s) =>
+        (categories.length === 0 || categories.includes(s.category)) &&
+        flags.every((f) => FLAGS[f](s)) &&
+        (!query ||
+          [s.name, s.neighbourhood, s.station, s.note_en, s.note_de, t(`cat.${s.category}`)].some((field) =>
+            field?.toLowerCase().includes(query),
+          )),
+    );
+  }, [spots, search, categories, flags, t]);
+
+  // Each visible spot lands in exactly one section.
+  const sections = useMemo(() => {
+    const openNow: Spot[] = [];
+    const later: { spot: Spot; at: string }[] = [];
+    const tomorrow: { spot: Spot; at: string }[] = [];
+    const closed: Spot[] = [];
+    if (now)
+      for (const spot of visible) {
+        const laterAt = opensLaterToday(spot, now);
+        const tomorrowAt = opensTomorrow(spot, now);
+        if (isOpenNow(spot, now)) openNow.push(spot);
+        else if (laterAt) later.push({ spot, at: laterAt });
+        else if (tomorrowAt) tomorrow.push({ spot, at: tomorrowAt });
+        else closed.push(spot);
+      }
+    const byTime = (a: { at: string }, b: { at: string }) => a.at.localeCompare(b.at);
+    return { openNow, later: later.sort(byTime), tomorrow: tomorrow.sort(byTime), closed };
+  }, [visible, now]);
+
+  const pins = useMemo<Pin[]>(
+    () =>
+      visible
+        .filter((s) => s.lat !== null && s.lng !== null)
+        .map((s) => ({
+          id: s.id,
+          name: s.name,
+          lat: s.lat!,
+          lng: s.lng!,
+          emoji: CATEGORIES[s.category as Category] ?? CATEGORIES.other,
+          imageUrl: s.image_url,
+          state: selected.includes(s.id) ? "selected" : sections.openNow.includes(s) ? "open" : "closed",
+          label: picked === s.id,
+        })),
+    [visible, selected, sections, picked],
   );
-  const openNow = now ? visible.filter((s) => isOpenNow(s, now)) : [];
-  const later = now
-    ? visible
-        .map((spot) => ({ spot, at: opensLaterToday(spot, now) }))
-        .filter((x): x is { spot: Spot; at: string } => x.at !== null)
-        .sort((a, b) => a.at.localeCompare(b.at))
-    : [];
-  // Saturday only: what opens on Sunday, so tomorrow can be planned tonight. Spots already listed above are left out.
-  const tomorrow = now
-    ? visible
-        .filter((s) => !openNow.includes(s) && !later.some((l) => l.spot === s))
-        .map((spot) => ({ spot, at: opensTomorrow(spot, now) }))
-        .filter((x): x is { spot: Spot; at: string } => x.at !== null)
-        .sort((a, b) => a.at.localeCompare(b.at))
-    : [];
+
+  function pickFromMap(id: string) {
+    setPicked(id);
+    document.getElementById(`spot-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 
   function toggleSpot(id: string) {
     if (!selected.includes(id) && selected.length >= MAX_SPOTS) return setHint(t("plan.max"));
@@ -87,7 +130,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
     if (!savedPlanId) {
       const { error } = await createClient()
         .from("plans")
-        .insert({ id, spot_ids: selected, device_id: getDeviceId(), neighbourhood: hood, source: getAttribution().source });
+        .insert({ id, spot_ids: selected, device_id: getDeviceId(), source: getAttribution().source });
       if (error) {
         await sharing;
         return setHint(t("plan.error"));
@@ -108,7 +151,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
       key={spot.id}
       spot={spot}
       badge={badge}
-      highlighted={selected.includes(spot.id)}
+      highlighted={selected.includes(spot.id) || picked === spot.id}
       videoOpen={openVideo === spot.id}
       onOpenVideo={() => setOpenVideo(spot.id)}
     >
@@ -122,21 +165,29 @@ export function SpotList({ spots }: { spots: Spot[] }) {
     </SpotCard>
   );
 
+  const section = (title: string, cards: React.ReactNode[]) =>
+    cards.length > 0 && (
+      <>
+        <h2 className="mt-7 text-sm font-semibold uppercase tracking-wide text-neutral-500">{title}</h2>
+        <div className="mt-2 space-y-3">{cards}</div>
+      </>
+    );
+
   return (
     <div className="mx-auto min-h-screen max-w-md bg-neutral-50 px-4 pb-40">
       <SiteHeader />
       <p className="text-neutral-600">{t("app.tagline")}</p>
 
-      <div data-testid="hood-switch" className="mt-5 grid grid-cols-2 gap-1 rounded-xl bg-neutral-200 p-1">
-        {HOODS.map((h) => (
-          <button
-            key={h}
-            onClick={() => setStored("hood", h)}
-            className={`rounded-lg py-2 font-medium ${hood === h ? "bg-white shadow-sm" : "text-neutral-600"}`}
-          >
-            {t(`hood.${h}`)}
-          </button>
-        ))}
+      <div className="relative isolate mt-4 h-[46vh] overflow-hidden rounded-2xl border border-neutral-200">
+        <SpotMap pins={pins} onPick={pickFromMap} />
+        <input
+          type="search"
+          data-testid="spot-search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t("search.placeholder")}
+          className="absolute inset-x-3 top-3 z-[1000] rounded-full border border-neutral-300 bg-white px-4 py-2.5 shadow-md"
+        />
       </div>
 
       <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
@@ -145,39 +196,25 @@ export function SpotList({ spots }: { spots: Spot[] }) {
             {t(`filter.${f}`)}
           </button>
         ))}
-        {CATEGORIES.map((c) => (
+        {(Object.keys(CATEGORIES) as Category[]).map((c) => (
           <button key={c} onClick={() => setCategories(toggled(categories, c))} className={chip(categories.includes(c))}>
-            {t(`cat.${c}`)}
+            {CATEGORIES[c]} {t(`cat.${c}`)}
           </button>
         ))}
       </div>
 
       {now && (
         <>
-          <h2 className="mt-6 text-sm font-semibold uppercase tracking-wide text-neutral-500">{t("section.openNow")}</h2>
-          <div className="mt-2 space-y-3">
-            {openNow.map((s) => card(s))}
-            {openNow.length === 0 && <p className="py-4 text-sm text-neutral-500">{t("section.empty")}</p>}
-          </div>
-
-          {later.length > 0 && (
-            <>
-              <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-neutral-500">{t("section.later")}</h2>
-              <div className="mt-2 space-y-3">{later.map(({ spot, at }) => card(spot, `${t("spot.opensAt")} ${at}`))}</div>
-            </>
-          )}
-
-          {tomorrow.length > 0 && (
-            <>
-              <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-neutral-500">{t("section.tomorrow")}</h2>
-              <div className="mt-2 space-y-3">{tomorrow.map(({ spot, at }) => card(spot, `${t("spot.sunday")} ${at}`))}</div>
-            </>
-          )}
+          {section(t("section.openNow"), sections.openNow.map((s) => card(s)))}
+          {section(t("section.later"), sections.later.map(({ spot, at }) => card(spot, `${t("spot.opensAt")} ${at}`)))}
+          {section(t("section.tomorrow"), sections.tomorrow.map(({ spot, at }) => card(spot, `${t("spot.sunday")} ${at}`)))}
+          {section(t("section.closed"), sections.closed.map((s) => card(s)))}
+          {visible.length === 0 && <p className="py-8 text-center text-sm text-neutral-500">{t("section.empty")}</p>}
         </>
       )}
 
       {selected.length > 0 && (
-        <div data-testid="plan-bar" className="fixed inset-x-0 bottom-0 border-t border-neutral-200 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+        <div data-testid="plan-bar" className="fixed inset-x-0 bottom-0 z-[1100] border-t border-neutral-200 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
           <div className="mx-auto max-w-md">
             {hint && <p className="mb-2 text-center text-sm text-neutral-700">{hint}</p>}
             <div className="flex items-center gap-3">

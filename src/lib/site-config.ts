@@ -2,7 +2,7 @@
 export const siteConfig = {
   name: "Kiez Plan", // working title: replace with the final brand name
   tagline: "Pick 3 spots, send one link, your friends vote.",
-  description: "What to do in Neukölln and Kreuzberg right now: curated spots with video, one link for your group chat, one tap to vote.",
+  description: "What to do in Berlin right now: curated spots on a map with video, one link for your group chat, one tap to vote.",
   hero: {
     title: "Plan your next trip in seconds",
     subtitle: "Placeholder subtitle: explain the value in one or two lines.",

@@ -111,7 +111,10 @@ export type Database = {
           created_at: string
           creator_handle: string | null
           id: string
+          image_url: string | null
           indoor: boolean
+          lat: number | null
+          lng: number | null
           name: string
           neighbourhood: string
           note_de: string | null
@@ -132,7 +135,10 @@ export type Database = {
           created_at?: string
           creator_handle?: string | null
           id?: string
+          image_url?: string | null
           indoor?: boolean
+          lat?: number | null
+          lng?: number | null
           name: string
           neighbourhood: string
           note_de?: string | null
@@ -153,7 +159,10 @@ export type Database = {
           created_at?: string
           creator_handle?: string | null
           id?: string
+          image_url?: string | null
           indoor?: boolean
+          lat?: number | null
+          lng?: number | null
           name?: string
           neighbourhood?: string
           note_de?: string | null

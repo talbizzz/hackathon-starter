@@ -23,6 +23,8 @@ From `Project-Raw.md` and the starter repo. Not up for re-decision.
 - Team: one engineer; one person on Instagram, ads and outreach; one on branding, pitch and slides. Curation must not fall on the engineer.
 - Budget: €150 for ads.
 
+> **Plan updated:** scope change by the team (21 Nov 2026, about 22:00). The product is Berlin-wide with a map home screen, not two neighbourhoods with a switch. This replaces ADR-9 and removes "map view" and "other neighbourhoods" from the non-goals. What changed: `spots.neighbourhood` is now a free-text district shown on the card; `spots.lat`, `spots.lng` and optional `spots.image_url` were added (`supabase/migrations/20261121030000_berlin_map.sql`); the home screen is a Leaflet map with OpenStreetMap tiles, icon pins (dark outline = open now, filled = in the plan, name shown on the tapped pin), a search field, filter chips and the card list below; tapping a pin scrolls to its card. Spots are imported with `scripts/import-spots.mjs`, which looks up coordinates from the address. Pins show a category icon unless `image_url` is set; hosting stills of other people's videos is a rights question the team has not decided. Shortlist, share and vote are unchanged.
+
 ## Architecture Decision Records
 
 ### ADR-1: Anonymous identity is a device id in localStorage
@@ -126,7 +128,7 @@ These start now and do not wait for code.
 
 `name, neighbourhood, category, indoor, price, address, station, sat_open, sat_close, sun_open, sun_close, video_url, venue_handle, creator_handle, note_en, note_de`
 
-- `neighbourhood`: `neukoelln` or `kreuzberg`.
+- `neighbourhood`: the district as people say it, for example `Neukölln`, `Mitte`, `Kreuzberg` (not `berlin`).
 - `category`: one of `food`, `drinks`, `market`, `culture`, `sport`, `outdoors`, `nightlife`, `other`.
 - `indoor`: `true` or `false`. `price`: `0` free, `1` under €15, `2` €15 to €30, `3` over €30.
 - Times as `HH:MM`, empty if closed that day. A place open Saturday 20:00 to Sunday 04:00 is `sat_open 20:00`, `sat_close 04:00`.

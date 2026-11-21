@@ -6,9 +6,9 @@ export type Lang = "en" | "de";
 export const dict: Record<Lang, Record<string, string>> = {
   en: {
     "lang.toggle": "Switch language",
-    "hood.neukoelln": "Neukölln",
-    "hood.kreuzberg": "Kreuzberg",
     "app.tagline": "Pick up to 3 spots. Send one link. Your friends vote.",
+    "search.placeholder": "Search activities",
+    "section.closed": "Closed right now",
     "section.openNow": "Open now",
     "section.later": "Opens later today",
     "section.tomorrow": "Tomorrow (Sunday)",
@@ -58,9 +58,9 @@ export const dict: Record<Lang, Record<string, string>> = {
   },
   de: {
     "lang.toggle": "Sprache wechseln",
-    "hood.neukoelln": "Neukölln",
-    "hood.kreuzberg": "Kreuzberg",
     "app.tagline": "Wähl bis zu 3 Spots. Schick einen Link. Deine Freunde stimmen ab.",
+    "search.placeholder": "Aktivität suchen",
+    "section.closed": "Gerade geschlossen",
     "section.openNow": "Jetzt geöffnet",
     "section.later": "Öffnet später heute",
     "section.tomorrow": "Morgen (Sonntag)",
