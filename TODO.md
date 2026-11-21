@@ -12,7 +12,7 @@
 ## Milestone 2: Core Flow (target Sun 02:30)
 
 - [ ] T2.1 — Core migration and database smoke script
-- [ ] T2.2 — Opening-hours, video and maps logic
+- [x] T2.2 — Opening-hours, video and maps logic (Spot and Plan types still to add once the migration is applied)
 - [ ] T2.3 — Tracking with device id
 - [ ] T2.4 — Load real spots
 - [ ] T2.5 — Home page: spot list
