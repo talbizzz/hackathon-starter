@@ -15,7 +15,7 @@ export function CoreActionButton() {
         setDone(true);
       }}
     >
-      {done ? "Done ✓" : siteConfig.dashboard.coreActionLabel}
+      {done ? "Done" : siteConfig.dashboard.coreActionLabel}
     </button>
   );
 }

@@ -9,11 +9,6 @@ export const siteConfig = {
     cta: "Join the waitlist",
     secondaryCta: "Sign in",
   },
-  features: [
-    { title: "Feature one", body: "Describe the first benefit in a short sentence.", icon: "✈️" },
-    { title: "Feature two", body: "Describe the second benefit in a short sentence.", icon: "🗺️" },
-    { title: "Feature three", body: "Describe the third benefit in a short sentence.", icon: "✨" },
-  ],
   cta: {
     title: "Be first in line",
     body: "Leave your email and we will let you know when we launch.",

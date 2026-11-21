@@ -119,7 +119,7 @@ export function PlanView({ planId }: { planId: string }) {
               key={spot.id}
               spot={spot}
               highlighted={mine}
-              badge={spot.id === leaderId ? `★ ${t("vote.leading")}` : undefined}
+              badge={spot.id === leaderId ? t("vote.leading") : undefined}
             >
               <p className="mb-2 text-sm">
                 <span className="font-semibold">

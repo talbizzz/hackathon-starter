@@ -9,7 +9,6 @@ export type Pin = {
   name: string;
   lat: number;
   lng: number;
-  emoji: string;
   imageUrl: string | null;
   state: "open" | "closed" | "selected";
   /** The spot the visitor tapped: drawn larger, with its name, above the other pins. */
@@ -17,9 +16,15 @@ export type Pin = {
 };
 
 const BERLIN: [number, number] = [52.5, 13.4];
+// The city with a margin, more of it to the south: the sheet covers the lower part of the map,
+// so southern spots must still be able to sit above it.
+const BERLIN_BOUNDS: [[number, number], [number, number]] = [
+  [52.12, 12.95],
+  [52.75, 13.9],
+];
 const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
-// Leaflet draws pins from HTML strings. A pin shows the spot's picture when it has one, else its category icon.
+// Leaflet draws pins from HTML strings. A pin shows the still from the spot's video, or a plain dot without one.
 function pinHtml(pin: Pin) {
   const name = escapeHtml(pin.name);
   // Border colour says what the spot is: in your plan, open now, or closed.
@@ -27,7 +32,7 @@ function pinHtml(pin: Pin) {
   // Pins stay small so they do not cover each other; the tapped one grows and shows its name.
   const face = pin.imageUrl
     ? `<img src="${escapeHtml(pin.imageUrl)}" alt="" class="${pin.picked ? "h-24 w-16" : "h-12 w-9"} rounded-lg border-[3px] ${border} bg-ink object-cover shadow-md" />`
-    : `<span class="flex ${pin.picked ? "h-14 w-14 text-2xl" : "h-9 w-9 text-lg"} items-center justify-center rounded-full border-[3px] ${border} bg-white leading-none shadow-md">${pin.emoji}</span>`;
+    : `<span class="block ${pin.picked ? "h-8 w-8" : "h-6 w-6"} rounded-full border-[3px] ${border} bg-white shadow-md"></span>`;
   const label = pin.picked
     ? `<span class="mt-1 max-w-36 truncate rounded-full bg-ink px-2.5 py-1 text-xs font-semibold text-white shadow-md">${name}</span>`
     : "";
@@ -64,7 +69,14 @@ export function SpotMap({ pins, onPick, bottomInset, focusId }: Props) {
     let cancelled = false;
     import("leaflet").then(({ default: L }) => {
       if (cancelled || !container.current) return;
-      const map = L.map(container.current, { zoomControl: false, attributionControl: false }).setView(BERLIN, 11);
+      const map = L.map(container.current, {
+        zoomControl: false,
+        attributionControl: false,
+        // The map cannot be dragged or zoomed away from Berlin.
+        maxBounds: BERLIN_BOUNDS,
+        maxBoundsViscosity: 1,
+        minZoom: 10,
+      }).setView(BERLIN, 11);
       L.control.attribution({ position: "topright", prefix: false }).addTo(map);
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 18,

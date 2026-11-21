@@ -125,7 +125,7 @@ export function AdminSpots() {
               <p className="font-medium">{spot.name}</p>
               <p className="text-sm text-neutral-500">
                 {spot.neighbourhood} ·{" "}
-                {!spot.video_file_url ? "Hidden: no video yet" : spot.video_file_url.startsWith("/mock/") ? "Sample video: replace before launch" : "Live ✓"}
+                {!spot.video_file_url ? "Hidden: no video yet" : spot.video_file_url.startsWith("/mock/") ? "Sample video: replace before launch" : "Live"}
               </p>
               {message?.spotId === spot.id && <p className="mt-1 text-sm text-neutral-800">{message.text}</p>}
             </div>

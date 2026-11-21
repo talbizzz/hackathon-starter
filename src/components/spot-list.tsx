@@ -16,17 +16,7 @@ import { isOpenNow, opensLaterToday, opensTomorrow, type Spot } from "@/lib/spot
 import { createClient } from "@/lib/supabase/client";
 import { siteConfig } from "@/lib/site-config";
 
-const CATEGORIES = {
-  food: "🍜",
-  drinks: "🍸",
-  market: "🧺",
-  culture: "🎨",
-  sport: "🧗",
-  outdoors: "🌳",
-  nightlife: "🪩",
-  other: "✨",
-} as const;
-type Category = keyof typeof CATEGORIES;
+const CATEGORIES = ["food", "drinks", "market", "culture", "sport", "outdoors", "nightlife", "other"] as const;
 const FLAGS = {
   indoor: (s: Spot) => s.indoor,
   free: (s: Spot) => s.price === 0,
@@ -106,7 +96,6 @@ export function SpotList({ spots }: { spots: Spot[] }) {
           name: s.name,
           lat: s.lat!,
           lng: s.lng!,
-          emoji: CATEGORIES[s.category as Category] ?? CATEGORIES.other,
           imageUrl: s.poster_url,
           state: selected.includes(s.id) ? "selected" : sections.openNow.includes(s) ? "open" : "closed",
           picked: picked === s.id,
@@ -262,9 +251,9 @@ export function SpotList({ spots }: { spots: Spot[] }) {
                   {t(`filter.${f}`)}
                 </button>
               ))}
-              {(Object.keys(CATEGORIES) as Category[]).map((c) => (
+              {CATEGORIES.map((c) => (
                 <button key={c} onClick={() => setCategories(toggled(categories, c))} className={chip(categories.includes(c))}>
-                  {CATEGORIES[c]} {t(`cat.${c}`)}
+                  {t(`cat.${c}`)}
                 </button>
               ))}
             </div>
