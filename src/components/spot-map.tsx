@@ -30,8 +30,9 @@ function pinHtml(pin: Pin) {
   // Border colour says what the spot is: in your plan, open now, or closed.
   const border = pin.state === "selected" ? "border-brand" : pin.state === "open" ? "border-ink" : "border-white";
   // Pins stay small so they do not cover each other; the tapped one grows and shows its name.
+  // The size is set inline: the map library forces width:auto on images inside pins, which let landscape stills grow wide.
   const face = pin.imageUrl
-    ? `<img src="${escapeHtml(pin.imageUrl)}" alt="" class="${pin.picked ? "h-24 w-16" : "h-12 w-9"} rounded-lg border-[3px] ${border} bg-ink object-cover shadow-md" />`
+    ? `<img src="${escapeHtml(pin.imageUrl)}" alt="" style="width:${pin.picked ? 64 : 36}px;height:${pin.picked ? 96 : 48}px" class="rounded-lg border-[3px] ${border} bg-ink object-cover shadow-md" />`
     : `<span class="block ${pin.picked ? "h-8 w-8" : "h-6 w-6"} rounded-full border-[3px] ${border} bg-white shadow-md"></span>`;
   const label = pin.picked
     ? `<span class="mt-1 max-w-36 truncate rounded-full bg-ink px-2.5 py-1 text-xs font-semibold text-white shadow-md">${name}</span>`

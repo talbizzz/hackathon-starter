@@ -28,5 +28,19 @@ body {
 
 /* The map is fullscreen with a search bar floating over its top edge: keep the map credit clear of it. */
 .leaflet-top.leaflet-right {
-  top: 72px;
+  top: 64px;
+}
+
+/* The map credit is required by the OpenStreetMap licence, so it stays, but small and quiet. */
+.leaflet-container .leaflet-control-container .leaflet-control-attribution {
+  margin: 0 12px 0 0;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.7);
+  font-size: 10px;
+  line-height: 1.5;
+  color: #666666;
+}
+.leaflet-container .leaflet-control-container .leaflet-control-attribution a {
+  color: inherit;
 }
