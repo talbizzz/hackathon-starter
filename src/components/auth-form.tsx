@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Events, getAttribution, identify, track } from "@/lib/analytics";
+import { authReturnTo } from "@/lib/auth-return";
 
-export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+export function AuthForm({ mode, returnTo }: { mode: "login" | "signup"; returnTo?: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,14 +29,13 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       return;
     }
     if (!data.session) {
-      // Means email confirmation is still ON in Supabase.
-      setError("Account created but no session: turn off 'Confirm email' in Supabase Auth settings.");
+      setError("Check your email to confirm your account, then return here to sign in.");
       setLoading(false);
       return;
     }
     if (data.user) identify(data.user.id, email);
     track(mode === "signup" ? Events.signup : Events.login);
-    router.push("/dashboard");
+    router.push(authReturnTo(returnTo));
     router.refresh();
   }
 
@@ -45,12 +45,12 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       <h1 className="text-2xl font-semibold">{isSignup ? "Create your account" : "Welcome back"}</h1>
       <form onSubmit={onSubmit} className="mt-6 space-y-3">
         <input
-          type="email" required placeholder="you@example.com" value={email}
+          type="email" required aria-label="Email address" autoComplete="email" placeholder="you@example.com" value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full rounded-lg border border-neutral-300 px-3 py-2"
         />
         <input
-          type="password" required minLength={6} placeholder="Password (min 6 chars)" value={password}
+          type="password" required aria-label="Password" autoComplete={mode === "signup" ? "new-password" : "current-password"} minLength={6} placeholder="Password (min 6 chars)" value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="w-full rounded-lg border border-neutral-300 px-3 py-2"
         />
@@ -61,7 +61,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       </form>
       <p className="mt-4 text-sm text-neutral-600">
         {isSignup ? "Already have an account? " : "No account yet? "}
-        <Link href={isSignup ? "/login" : "/signup"} className="underline">
+        <Link href={`${isSignup ? "/login" : "/signup"}?next=${encodeURIComponent(authReturnTo(returnTo))}`} className="underline">
           {isSignup ? "Sign in" : "Sign up"}
         </Link>
       </p>

@@ -1,0 +1,31 @@
+REQUEST
+Integrate PayPal and unlock the EUR3.99 outing plan only after confirmed payment;
+prepare the whole flow for campaigns. Preserve existing uncommitted app changes.
+
+ACCEPTANCE
+Public preview and free discovery remain usable. Buyer signs in for durable
+purchase/recovery. Price399 euro cents and product ID are server-owned. PayPal
+REST order creation/approval/capture, not PayPal.Me success URLs, establish a sale.
+Only verified COMPLETED capture for correct order, merchant, currency, amount,
+product and buyer may unlock protected plan content. No client-paid flags.
+Cancellation/failure/pending never unlock; retries/duplicate notifications are
+idempotent, another user cannot capture/read an order; verified refund/reversal
+revokes access and an older completed event must not restore it. Authenticated
+buyer can return/recover and copy purchased itinerary for their outing group.
+Keep secrets and full paid content out of client/public preview bundles. Database
+RLS excludes public writes; privileged functions limited to server role. Verify
+webhook signatures and fail closed when config is absent. API requests have
+bounded timeouts and useful safe errors. Include focused behavior/SQL tests,
+typecheck/lint/build, desktop/mobile preview and purchase-state evidence.
+
+DELIVERY BOUNDARY
+No PayPal credentials or production Supabase access are present at start.
+Local sandbox/mocked-provider evidence cannot establish a live payment or release.
+No real charge/test purchase is authorised. Build/test without paid model calls.
+No production success claim until correct target, migration, credentials,
+webhook and deployed runtime are verified. Earlier release owner changes remain.
+
+OWNERSHIP
+Backend specialist: src/lib/paypal/**, src/app/api/paypal/**, one new payment
+migration and its SQL tests. Root: paid-plan public metadata/content, UI/auth
+redirect integration, .env.example/docs, local browser harness and verification.

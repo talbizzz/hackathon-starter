@@ -1,6 +1,6 @@
 # Kiez Plan (working title) — Project Plan
 
-Deadline: Sunday 22 November 2026, 16:00 Berlin time. One engineer. Written Saturday about 20:20.
+Submission freeze: Sunday 22 November 2026, 15:30 Berlin time (organizer email supplied 20 November). Live URL, three slides and numbers must be submitted by then; semifinal pitches start at 16:00. One engineer. Written Saturday about 20:20.
 
 ## Decisions Carried Over
 
@@ -11,7 +11,7 @@ From `Project-Raw.md` and the starter repo. Not up for re-decision.
 - Workers: Web APIs and `fetch` only. No Node-only libraries in app code.
 - Environments: local dev and production only. "Deployed" in this plan always means production.
 
-> **Plan updated:** the repo has no git remote, so the GitHub Actions workflow never runs. Deploy with `pnpm deploy` from the engineer's machine (wrangler is logged in); run `pnpm test` first by hand. Production URL: `https://hackathon-starter.a-talbi890.workers.dev`. Wherever a milestone says "push to `main`", read "commit on `main`, then `pnpm deploy`". (21 Nov 2026)
+> **Historical engineer-machine note (superseded for this checkout):** the repo had no git remote, so the GitHub Actions workflow never runs. Deploy with `pnpm deploy` from the engineer's machine (wrangler is logged in); run `pnpm test` first by hand. Production URL: `https://hackathon-starter.a-talbi890.workers.dev`. Wherever a milestone says "push to `main`", read "commit on `main`, then `pnpm deploy`". (21 Nov 2026)
 
 > **Plan updated:** `supabase/migrations/20261121010000_traction.sql` was already applied to the live database when Milestone 1 started; the generated types match the hand-edited ones and a scripted signup smoke test passed. (21 Nov 2026)
 - Tracking from branch `traction-tracking`: `track()` in `src/lib/analytics.ts` writes to PostHog and the Supabase `events` table with first-touch `source` and `campaign`; `/stats` is admin-only. Migration `supabase/migrations/20261121010000_traction.sql` is written but not applied.

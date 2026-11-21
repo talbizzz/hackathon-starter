@@ -1,0 +1,163 @@
+CURRENT RESUME STATUS — 21 NOVEMBER (supersedes old empty-list speculation below)
+Live read-only anonymous database request returned five published spots. The one
+supported locality uses Neukölln, while the app compared only neukoelln; no live
+Kreuzberg rows exist. Local code now maps only known supported locality spellings,
+distinguishes query failures/empty inventory/filters/hours, and resets selections
+when changing locality. Existing save-before-share and stats work is preserved.
+
+The current curated handoff is data/reviewed-launch-candidates.csv: four rows,
+all published=false. Seven contradictory prior video-match claims were downgraded
+in the source Sheet and exports. These four retain earlier sampling evidence,
+not a new full-video watch or website-playback clearance. Import as unpublished,
+review against current venue facts and site playback, then publish accepted rows
+through the deployment owner's normal process. Do not bulk import the100 records.
+
+Production access: connected Supabase account does not contain the production
+project iyvypsiqdgryimwkenqb; local .env intentionally contains no project keys.
+No production writes, migration, upload, push or deployment performed. Local
+changes do not make the public deployment current. Local runtime verification passed:54 unit tests,typecheck,lint,production build,
+10 real API checks,10 two-context browser checks and3 save/share recovery checks.
+Screenshots reviewed at mobile/desktop sizes. Independent relevance/correctness
+review passes for this local scope. Actual phone OS share and production remain
+unverified. Details: verification/release-2026-11-21.json.
+
+LAUNCH READINESS — 21 NOVEMBER 2026
+
+PRODUCT OBSERVED IN THIS REPOSITORY
+Working title: Kiez Plan. Pick up to three local places, create one link,
+share it in a group chat, let friends vote, then open directions.
+The core flow deliberately has no AI and no visitor signup. The LLM endpoint
+is an optional authenticated starter feature; adding AI is not a launch prerequisite.
+Remote inspected: https://github.com/talbizzz/hackathon-starter
+Base revision: 4c4a647dba622bdc030ea4df51cef85acb17efe9
+
+JUDGING AND DEADLINE
+Organizer email supplied by the user, recorded in parent research/MEGAPLAN.md:
+real users count double; works live; launch & marketing; pitch; idea & problem.
+Sunday 22 November 15:30 Europe/Berlin: immutable submission with live URL,
+three slides and numbers. Semifinal pitch: three minutes. The exact definition
+of a qualifying real user and scoring scale remain unconfirmed.
+Public event: https://luma.com/613ahsn2
+No platform launch or upvote count guarantees a judging result.
+
+RECOMMENDED CAMPAIGN
+Audience: people making an actual plan with friends in the supported Berlin area.
+Offer: "Still deciding where to go? Pick up to three spots and let your friends vote."
+CTA: "Make your group's plan."
+Destination: the working home page, not a waitlist. The production URL recorded
+by the original engineer is https://hackathon-starter.a-talbi890.workers.dev
+Read-only browser check on 21 November: the public URL loads Kiez Plan, but both
+Neukolln and Kreuzberg show no cards with default filters at inspection time.
+This does not prove the database is empty: unknown hours or a load error can
+produce the same symptom. This branch is not deployed there.
+
+Primary acquisition: reachable group organisers who have a real decision today
+or Sunday. Ask one organiser to use their own phone, then invite actual friends.
+This exercises the product's distribution mechanism: planner -> recipients ->
+votes -> group decision. Report recipients and planners distinctly; avoid treating
+multiple events as multiple people. Observe independent completion where possible.
+
+Secondary: permissioned posts in relevant existing Berlin communities, a relevant
+local organiser/venue sharing the tool, and warm introductions from teammates.
+No relationship, endorsement or posting permission is established by this plan.
+One partner serving the right audience can be more useful than many new profiles.
+
+Instagram: existing @experiencelab2026 supports a short screen recording of the
+real complete flow. Reuse original/permissioned creative organically on TikTok
+if ready. Don't download researched creator clips for advertising without rights.
+The sheet's official embed availability is not permission for ad reuse.
+
+Draft user invitation (send only after destination is tested):
+"Making plans with friends in Neukolln or Kreuzberg? We built a small tool:
+pick up to three places, send one link, and everyone votes. Try it for your next
+outing: [tested tagged URL]. Tell us where you get stuck."
+
+Draft 15-second demo:
+0–3s: "Your group chat still can't choose where to go?"
+3–10s: show real shortlist -> saved plan -> share -> friend vote.
+10–15s: "Make your group's plan. [product URL]"
+Only show available features and genuine outcomes. Do not invent votes or demand.
+
+PRODUCT HUNT: OPTIONAL AMPLIFICATION
+Cap preparation at about 30 minutes after the core flow/content are usable.
+Use the actual product screenshot and demo, a verified personal maker account,
+product URL, name, tagline, description, logo, gallery image, tag and maker role.
+No external hunter needed. Homepage featuring is editorial and not guaranteed.
+Scheduled launches start 00:01 Pacific; 22 November corresponds to 09:01 Berlin,
+leaving 6h29m until submission. Eligibility/schedule must be confirmed in the UI.
+Ask people to try it and give feedback, never ask or reward upvotes.
+For a two-neighbourhood consumer tool, the local channels above are the stronger
+audience-fit hypothesis. Product Hunt is not a dependency for traction.
+https://help.producthunt.com/en/articles/17734646-8-launch-faq-and-myths
+https://help.producthunt.com/en/articles/17834537-4-build-your-product-page
+https://help.producthunt.com/en/articles/17734384-5-how-to-promote-your-launch-and-what-to-avoid
+
+PAID DISTRIBUTION
+EUR150 is the recorded all-in ceiling, not an instruction to spend it all.
+Use one paid channel only after real users complete the workflow and attribution
+works. Proposal: an initial EUR20–30 total test, keeping the balance uncommitted.
+Verify actual billing, fees, approval and delivery before assuming any reach.
+Stop a test with a broken destination or no interpretable outcome evidence.
+Inspect the landing flow before expanding spend when clicks bring no plans/votes.
+TikTok says most ad reviews finish within 24 hours, sometimes longer; a new paid
+campaign is therefore an uncertain route to pre-deadline users.
+https://ads.tiktok.com/resources/help/article/ad-review-faq
+SEO, directory submissions and broad press outreach are post-event work unless
+a specific relevant audience is already reachable through them.
+
+THREE OWNERS AND CUT POINTS (RECOMMENDATION)
+Engineer: reliable create/share/vote flow, load failures, measurement and release.
+Marketing: recruit real planners, observe group use, distribute the demo, log sources.
+Brand/pitch owner: curate usable inventory, capture permissioned proof, prepare slides.
+As soon as usable: first observed group journey; fix blockers before buying traffic.
+Sunday 13:00: stop feature additions; focus on working production and evidence.
+Sunday 14:30: reconcile numbers, capture backup demo, rehearse, check submission access.
+Submit before 15:30; retain a buffer. Don't mistake the 16:00 pitch for the deadline.
+
+EVIDENCE TO CAPTURE
+Per channel: eligible visitors/devices, successful plan creators, voters, plans
+receiving a vote from a different device, directions taps, time and cash spent.
+Device IDs are browser proxies, not verified unique humans; cross-browser use,
+shared devices, resets and manipulation limit the count. Confirm real participant
+counts separately through observations; label assistance and exclude team tests.
+Use source tags such as instagram, community, partner and field; internal QA must
+be tagged separately. A directions click does not prove attendance or a booking.
+There is no known winning user threshold. Aim first for several complete real
+group journeys, then repeat the channel that produces them most efficiently.
+Measure first group decision time against their existing group-chat process when
+feasible; a few observations are learning evidence, not a statistical claim.
+
+THREE SLIDES
+1. Specific group-planning problem and observed current workaround.
+2. Live shortlisting -> saved link -> another person's vote -> directions.
+3. Timestamped funnel with sources, exclusions, spend and one change learned from
+   real use. Separate measured results from proposed business model.
+Potential customer: local venue/operator paying for attributable qualified demand.
+Only claim this if tested; user activity alone does not validate that payer model.
+Offer an opt-in follow-up after the event to measure whether groups return naturally.
+
+CONTENT HANDOFF GAP — DO NOT BULK IMPORT THE RESEARCH SHEET
+Other chat "Find Berlin activities and videos" produced 100 draft links across
+12 districts: 94 TikTok, 6 Instagram. Official embed markup was returned, but clips
+were not watched and many prices/hours/stations remain unverified.
+The current app and database only accept neukoelln or kreuzberg. Generic "berlin"
+and other districts are incompatible with its filter and database constraint.
+Unknown hours are especially dangerous: this app interprets null open as closed.
+Curate a smaller verified supported-area subset for launch, including correct
+venue, actual weekend hours, price, activity, working embed and source credit.
+All-Berlin expansion requires coordinated schema/filter/copy/content changes;
+the larger research collection is useful backlog, not ready-to-import inventory.
+
+OTHER AUDIT FINDINGS / NEXT ENGINEERING WORK
+Home currently ignores database read errors; plan view can confuse service errors
+with nonexistent plans. Add recoverable load-error states before broad acquisition.
+README/old plan contain historical deploy claims. Recheck the current production
+revision and dependencies before claiming the branch is live.
+Live database migration, admin stats and real-device share verification must be
+coordinated with the team's deployment owner; no production changes in this task.
+
+LOCAL CHANGE STATUS
+The branch includes save-before-share with a fresh second tap, and a new
+activated-browser stats migration. The migration must be reviewed/applied by
+the deployment owner before the new stats description matches production.
+Do not change production merely to preview this local branch.

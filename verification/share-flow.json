@@ -1,0 +1,8 @@
+{
+  "checks": [
+    "failed save shows recovery and does not share nonexistent plan",
+    "retry saves successfully without opening share before second tap",
+    "native share adapter receives saved URL during active user gesture"
+  ],
+  "scope": "Real browser click/activation and local persistence, navigator.share instrumented. Actual OS phone share sheet not tested."
+}

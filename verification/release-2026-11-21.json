@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-21",
+  "branch": "metaphysicist1/launch-readiness",
+  "base_commit": "4c4a647dba622bdc030ea4df51cef85acb17efe9",
+  "status": "local implementation verified; production release and full catalogue remain blocked",
+  "checks": {
+    "unit_tests": {
+      "passed": 54,
+      "files": 4,
+      "command": "pnpm test"
+    },
+    "typecheck": "pnpm exec tsc --noEmit passed",
+    "lint": "pnpm lint passed",
+    "production_build": "pnpm build passed using local-only QA environment",
+    "database_checks": 10,
+    "browser_checks": 10,
+    "save_share_checks": 3,
+    "visual_review": [
+      "home-mobile.png",
+      "plan-mobile.png",
+      "plan-desktop.png"
+    ]
+  },
+  "review": {
+    "checker": "native brain-verifier /root/release_check",
+    "relevance": "pass for local implementation",
+    "correctness": "pass within verified local scope",
+    "fixed_finding": "Changing neighbourhood now clears hidden selected spots; actual browser assertion passed."
+  },
+  "production_observation": {
+    "method": "Read-only public REST request from live browser",
+    "published_rows": 5,
+    "supported_row_label": "Neukölln",
+    "expected_filter": "neukoelln",
+    "kreuzberg_rows": 0,
+    "no_production_mutations": true
+  },
+  "limitations": [
+    "Not committed, pushed or deployed. Production Supabase project is absent from connected account.",
+    "Native share API was instrumented; actual phone OS share sheet not exercised. Clipboard fallback was tested.",
+    "Video embed playback was not established by the app flow checks. Social player attempts timed out.",
+    "100 researched venues:99 metadata-ready,14 retained historical video sampling claims,4 supported candidates,5 selected activities unavailable this weekend. Sisyphos admission unresolved.",
+    "Seven contradictory video-match claims downgraded in Sheet;29 corrected cells verified. Four import rows are explicitly unpublished."
+  ],
+  "source_sha256": {
+    "src/app/(marketing)/page.tsx": "827736ea65d79526a14295ab5205be7e27b712c3207cf69be85d269e7625c1e0",
+    "src/components/spot-list.tsx": "7982e125c9ebb7f9f48dae2e7709512728c4b8da0c591c9b84a334d391b70fe1",
+    "src/components/plan-view.tsx": "bee1c8489baf02a00df39ac887a97895495d46ff7360d09c5884fde259f58c36",
+    "src/lib/i18n.ts": "25fecad63f6f63d9ef9b6a6f339ae3c21c15e98c0508d58c239d759e7667a76d",
+    "src/lib/spot-discovery.ts": "4b039ca6257717d556608dda1b956ee9ccb209625e20339ea161d0e18707dbd9",
+    "src/lib/spot-discovery.test.ts": "4bb370a50425c0ba4b02b8ea851df1f80ce3ae83a53746c7532e4072f557fa49",
+    "src/lib/plan-sharing.ts": "35b2f7c1054677ba142818cc4bd5b8718804498b63638dfea807e660200bbd86",
+    "src/lib/plan-sharing.test.ts": "fff89a11c50fc993f039aae5e3e7ca3a53bfb4eb54583ea4a5d7ff1c09b4242f",
+    "data/reviewed-launch-candidates.csv": "98828c230b06f9c23ef3d58dea92054d057a8dcf8a08af1d6e4018e9c1a16ef4"
+  }
+}

@@ -8,7 +8,7 @@ const COLUMNS = [
   { key: "visits", label: "Visits" },
   { key: "waitlist", label: "Waitlist" },
   { key: "signups", label: "Signups" },
-  { key: "activated", label: "Real users" },
+  { key: "activated", label: "Activated browsers" },
 ] as const;
 
 // Admin-only traction numbers, straight from Supabase (see traction_stats() in supabase/migrations).
@@ -37,7 +37,14 @@ export default async function StatsPage() {
     <div>
       <h1 className="text-2xl font-semibold">Stats</h1>
       <p className="mt-1 text-sm text-neutral-500">
-        Real users = signed-in users who did the core action at least once. Channel = first-touch utm_source or referrer.
+        Activated browsers = distinct browser IDs with a saved plan or vote, counted once across channels.
+        Channel = first recorded attributed event; otherwise the first plan’s source, or direct for vote-only browsers.
+      </p>
+
+      <p className="mt-2 text-sm text-neutral-500">
+        Browser IDs are client supplied, not verified people. Clearing storage or using another browser can count again.
+        IDs tagged smoke-test in a plan source or event source/campaign are excluded, as are votes on tagged test plans and tagged funnel rows.
+        Untagged tests and abuse can remain; shared devices can undercount.
       </p>
 
       <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">

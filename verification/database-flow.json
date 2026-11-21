@@ -1,0 +1,18 @@
+{
+  "checks": [
+    "published inventory is readable in both supported neighbourhoods",
+    "creator can save a plan",
+    "independent recipient opens persisted shortlist",
+    "recipient casts one vote",
+    "creator observes recipient vote with separate identity",
+    "changing one device vote does not duplicate voter",
+    "out-of-plan vote rejected",
+    "missing plan remains distinct from service error",
+    "anonymous callers cannot enumerate plans",
+    "controlled service outage and recovery available for UI verification"
+  ],
+  "planId": "c723c534-39d2-4472-860e-406beca2c924",
+  "fixtureCount": 4,
+  "scope": "Disposable Postgres17 with all repository migrations, PostgREST13.0.7, local REST proxy. No production or real phone share test.",
+  "fixture_note": "Initial API run used10 research fixture rows with original migrations. Final API run used4 retained candidates; disposable locality CHECK was removed only to reproduce observed live display-label Neuk\u00f6lln. Production untouched."
+}

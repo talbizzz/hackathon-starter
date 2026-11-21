@@ -24,7 +24,7 @@ export function PlanView({ planId }: { planId: string }) {
   const key = ["plan", planId];
 
   // Results are refreshed by polling (see ADR-6); cheap enough for a group chat.
-  const { data: plan, isPending } = useQuery({
+  const { data: plan, isPending, isError, isFetching, refetch } = useQuery({
     queryKey: key,
     enabled: valid,
     refetchInterval: 3000,
@@ -79,6 +79,15 @@ export function PlanView({ planId }: { planId: string }) {
   );
 
   if (valid && isPending) return shell(<p className="py-10 text-center text-neutral-500">{t("vote.loading")}</p>);
+  if (valid && isError && !plan)
+    return shell(
+      <div role="alert" className="py-10 text-center">
+        <p className="text-neutral-700">{t("vote.loadError")}</p>
+        <button onClick={() => void refetch()} disabled={isFetching} aria-busy={isFetching} className="mt-4 rounded-lg bg-black px-4 py-2.5 font-medium text-white disabled:opacity-60">
+          {t(isFetching ? "vote.loading" : "action.retry")}
+        </button>
+      </div>,
+    );
   if (!plan)
     return shell(
       <div className="py-10 text-center">
@@ -104,6 +113,7 @@ export function PlanView({ planId }: { planId: string }) {
         value={name}
         onChange={(e) => setTypedName(e.target.value)}
         maxLength={30}
+        aria-label={t("vote.name")}
         placeholder={t("vote.name")}
         autoComplete="given-name"
         className="mt-4 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5"

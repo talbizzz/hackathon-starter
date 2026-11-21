@@ -1,0 +1,19 @@
+{
+  "checks": [
+    "Anonymous preview is mobile-readable; paid=true does not expose itinerary",
+    "Sign-in/sign-up preserve the purchase return for recovery",
+    "Missing configuration disables checkout",
+    "Cancellation does not capture or unlock",
+    "Pending capture stays locked and provides a recovery action",
+    "Verified failed payment stays locked and explains new checkout",
+    "Verification mismatch stays locked with a useful message",
+    "Confirmed capture loads server itinerary, cleans return URL and enables group copy",
+    "Returning entitlement recovers access without another capture",
+    "Revoked entitlement removes the itinerary on returning to the page",
+    "Purchase button opens the provider-supplied sandbox approval URL (intercepted, no network payment)",
+    "Already approved checkout is verified directly without an invalid redirect",
+    "Actual local API rejects anonymous content access and cross-origin capture"
+  ],
+  "errors": [],
+  "scope": "Real local Next production UI with explicitly intercepted payment responses. Actual local anonymous/API origin checks. No genuine PayPal or production database interaction."
+}

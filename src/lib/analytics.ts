@@ -8,8 +8,8 @@ export const Events = {
   signup: "signup",
   login: "login",
   waitlistSubmit: "waitlist_submit",
-  // Placeholder for your product's key action. Fire it from the real feature.
-  // Keep the value "core_action": /stats counts users with this event as real users.
+  // Legacy starter event; launch activation is computed from persisted plans/votes.
+  // Do not treat this client-emitted event as evidence of a real participant.
   coreAction: "core_action",
   videoPlayed: "video_played",
   planCreated: "plan_created",

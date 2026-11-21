@@ -1,0 +1,17 @@
+{
+  "checks": [
+    "production display-label Neukölln appears in canonical filter",
+    "changing neighbourhood clears hidden shortlist",
+    "save creates persisted plan before share",
+    "fresh share tap copies correct saved URL",
+    "separate browser recipient vote reaches creator by polling",
+    "recipient changes vote without creating another voter and creator sees replacement",
+    "plan service failure shows retry and recovers",
+    "home service failure shows retry and recovers",
+    "empty category filters have working clear action",
+    "invalid plan remains a missing-plan state"
+  ],
+  "errors": [],
+  "planPath": "/p/b117c9d4-bcaf-416c-90fc-9b2063b5191f",
+  "scope": "Real local Next UI; two isolated Chromium contexts; disposable Postgres/PostgREST. Clipboard fallback tested; actual phone OS share sheet and production deployment not tested."
+}

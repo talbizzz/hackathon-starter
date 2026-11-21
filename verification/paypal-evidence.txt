@@ -1,0 +1,22 @@
+PayPal integration evidence —21November2026
+Candidate: metaphysicist1/launch-readiness; base4c4a647dba622bdc030ea4df51cef85acb17efe9; local uncommitted implementation.
+Scope: verification/paypal-task.txt. User will push; teammate supplies backend credentials and deployment.
+
+PASS: pnpm exec tsc --noEmit; pnpm lint; pnpm test109tests in8files (47backend payment tests,8auth-return tests,54preexisting).
+PASS: Next production build with explicit disposable local-only public environment. No production credentials used.
+PASS: backend specialist fresh PostgreSQL16 database, final payment migration and SQL assertions. Container removed.
+PASS: verification/paypal-browser.mjs13browser contract checks plus desktop/mobile screenshots under verification/paypal/. Local Next production server127.0.0.1:3087. Payment API responses deliberately intercepted in browser, not real PayPal. Actual un-intercepted local API denied anonymous plan access401 and cross-origin capture403.
+PASS: distinctive protected itinerary text absent from public .next/static JS assets.
+PASS: git diff --check.
+
+Browser evidence covers free preview, no paid=true bypass, auth return persistence, missing config, cancel, pending, failed, mismatch, confirmed unlock/copy, returning recovery, refund removal, already-approved recovery and intercepted PayPal redirect. Root reviewed desktop/mobile screenshots.
+Backend tests cover fixedproduct/amount/currency/merchant/account binding, pending/failed capture, ambiguous network success recovery, database outage retry, verified signature, duplicate/out-of-order events, refund/reversal terminality, order reuse and capture pinning.
+
+NOT VERIFIED: genuine PayPal sandbox buyer/merchant transaction or live charge, deployment to Cloudflare, team production migration, live webhook receipt, actual seller eligibility or bank payout. No charges, external outreach, campaigns, push or deployment performed. Live sales default disabled. Public Supabase settings appeared in ignored.env.local during task; secrets not printed/used for QA, file preserved.
+Additional actual REST integration: backend specialist verified PostgREST13.0.7+PostgreSQL16 JSON response shapes for reserve/latest/claim/apply and table reads/attach/entitlement. Anonymous and authenticated clients cannot call privileged RPCs; buyers read only own receipts and cannot UPDATE. Owned containers/network removed; no source edits. Probe /tmp/paypal-rest-seam-2311.py (local dummy secrets only).
+
+External Claude checker raw static verdict relevancePASS/correctnessPASS, advisory findings only. Helper rejected normalization because advisory path git_diff is outside packet scope; therefore not an accepted independent pass. No retry/API fallback. Provenance: /home/metaphysicist/.local/state/codex-paypal-review-20261121/claude-1/. Native brain-verifier fallback completed; see verdict below.
+Advisory dispositions: source full files for newly untracked backend are intentional and recorded in Git status; browser/testing evidence independently inspected locally; auth aria labels/autocomplete retained as necessary accessible purchase sign-in fields.
+
+FINAL INDEPENDENT REVIEW
+Native brain-verifier paypal_delivery_check: relevancePASS and correctnessPASS for local implementation+teammate handoff; no material defects. Inspected current backend/routes/migration/auth/env/deployment/setup, browser harness/results and all3screenshots. Freshly ran55payment/auth tests in4files. Production/campaign readiness remains unverified until teammate configures and verifies genuine sandbox/live deployment. Advisory stale10-check/pending evidence wording corrected to13checks and finalverdict.
