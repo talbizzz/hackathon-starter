@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isOpenNow, mapsUrl, opensLaterToday, parseVideo } from "./spots";
+import { isOpenNow, mapsUrl, opensLaterToday, opensTomorrow, parseVideo } from "./spots";
 
 // Berlin is UTC+1 on this weekend.
 const at = (iso: string) => new Date(iso);
@@ -29,6 +29,12 @@ describe("opensLaterToday", () => {
   it("returns the opening time before opening", () => expect(opensLaterToday(sunDay, SUN_09_00)).toBe("10:00"));
   it("returns null once open", () => expect(opensLaterToday(sunDay, SUN_12_00)).toBeNull());
   it("returns null when closed all day", () => expect(opensLaterToday(closed, SUN_09_00)).toBeNull());
+});
+
+describe("opensTomorrow", () => {
+  it("returns Sunday's opening time on Saturday", () => expect(opensTomorrow(sunDay, SAT_21_00)).toBe("10:00"));
+  it("returns null on Saturday when Sunday is closed", () => expect(opensTomorrow(satEvening, SAT_21_00)).toBeNull());
+  it("returns null on Sunday", () => expect(opensTomorrow(sunDay, SUN_09_00)).toBeNull());
 });
 
 describe("parseVideo", () => {

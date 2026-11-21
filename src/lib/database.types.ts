@@ -28,6 +28,7 @@ export type Database = {
       }
       events: {
         Row: {
+          anon_id: string | null
           campaign: string | null
           created_at: string
           id: string
@@ -36,6 +37,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          anon_id?: string | null
           campaign?: string | null
           created_at?: string
           id?: string
@@ -44,12 +46,40 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          anon_id?: string | null
           campaign?: string | null
           created_at?: string
           id?: string
           name?: string
           source?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      plans: {
+        Row: {
+          created_at: string
+          device_id: string
+          id: string
+          neighbourhood: string | null
+          source: string | null
+          spot_ids: string[]
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          id: string
+          neighbourhood?: string | null
+          source?: string | null
+          spot_ids: string[]
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          id?: string
+          neighbourhood?: string | null
+          source?: string | null
+          spot_ids?: string[]
         }
         Relationships: []
       }
@@ -73,6 +103,107 @@ export type Database = {
           source?: string | null
         }
         Relationships: []
+      }
+      spots: {
+        Row: {
+          address: string
+          category: string
+          created_at: string
+          creator_handle: string | null
+          id: string
+          indoor: boolean
+          name: string
+          neighbourhood: string
+          note_de: string | null
+          note_en: string | null
+          price: number
+          published: boolean
+          sat_close: string | null
+          sat_open: string | null
+          station: string | null
+          sun_close: string | null
+          sun_open: string | null
+          venue_handle: string | null
+          video_url: string
+        }
+        Insert: {
+          address: string
+          category: string
+          created_at?: string
+          creator_handle?: string | null
+          id?: string
+          indoor?: boolean
+          name: string
+          neighbourhood: string
+          note_de?: string | null
+          note_en?: string | null
+          price?: number
+          published?: boolean
+          sat_close?: string | null
+          sat_open?: string | null
+          station?: string | null
+          sun_close?: string | null
+          sun_open?: string | null
+          venue_handle?: string | null
+          video_url: string
+        }
+        Update: {
+          address?: string
+          category?: string
+          created_at?: string
+          creator_handle?: string | null
+          id?: string
+          indoor?: boolean
+          name?: string
+          neighbourhood?: string
+          note_de?: string | null
+          note_en?: string | null
+          price?: number
+          published?: boolean
+          sat_close?: string | null
+          sat_open?: string | null
+          station?: string | null
+          sun_close?: string | null
+          sun_open?: string | null
+          venue_handle?: string | null
+          video_url?: string
+        }
+        Relationships: []
+      }
+      votes: {
+        Row: {
+          created_at: string
+          device_id: string
+          id: string
+          plan_id: string
+          spot_id: string
+          voter_name: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          id?: string
+          plan_id: string
+          spot_id: string
+          voter_name: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          id?: string
+          plan_id?: string
+          spot_id?: string
+          voter_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       waitlist: {
         Row: {
@@ -100,6 +231,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cast_vote: {
+        Args: {
+          p_device_id: string
+          p_name: string
+          p_plan_id: string
+          p_spot_id: string
+        }
+        Returns: Json
+      }
+      get_plan: {
+        Args: { p_device_id?: string; p_plan_id: string }
+        Returns: Json
+      }
       traction_stats: { Args: never; Returns: Json }
     }
     Enums: {

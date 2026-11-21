@@ -1,4 +1,5 @@
 import posthog from "posthog-js";
+import { getDeviceId } from "@/lib/device";
 import { createClient } from "@/lib/supabase/client";
 
 // One place for event names. Add yours here.
@@ -10,6 +11,12 @@ export const Events = {
   // Placeholder for your product's key action. Fire it from the real feature.
   // Keep the value "core_action": /stats counts users with this event as real users.
   coreAction: "core_action",
+  videoPlayed: "video_played",
+  planCreated: "plan_created",
+  shareTapped: "share_tapped",
+  planOpened: "plan_opened",
+  voteCast: "vote_cast",
+  directionsTapped: "directions_tapped",
 } as const;
 
 const ATTRIBUTION_KEY = "attribution";
@@ -43,7 +50,7 @@ export function track(event: (typeof Events)[keyof typeof Events], props?: Recor
   const { source, campaign } = getAttribution();
   posthog.capture(event, props);
   // First-party copy in Supabase: not dropped by ad blockers, and it feeds /stats.
-  void createClient().from("events").insert({ name: event, source, campaign }).then(() => {});
+  void createClient().from("events").insert({ name: event, source, campaign, anon_id: getDeviceId() }).then(() => {});
 }
 
 let visitChecked = false;

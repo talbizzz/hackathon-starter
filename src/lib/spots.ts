@@ -1,4 +1,10 @@
 // Pure helpers for spots: opening hours (this weekend only), video links, directions.
+import type { Database } from "@/lib/database.types";
+
+export type Spot = Database["public"]["Tables"]["spots"]["Row"];
+/** What get_plan / cast_vote return (see supabase/migrations/20261121020000_core.sql). */
+export type PlanSpot = Omit<Spot, "published" | "created_at"> & { votes: number; voters: string[] };
+export type Plan = { id: string; created_at: string; my_vote: string | null; total_votes: number; spots: PlanSpot[] };
 
 /** Opening hours as Postgres `time` strings ("HH:MM" or "HH:MM:SS"). A null open time means closed that day. */
 export type Hours = {
@@ -52,6 +58,11 @@ export function opensLaterToday(spot: Hours, now: Date): string | null {
   const open = day === "Sat" ? spot.sat_open : day === "Sun" ? spot.sun_open : null;
   if (!open || toMinutes(open) <= minutes || isOpenNow(spot, now)) return null;
   return open.slice(0, 5);
+}
+
+/** On Saturday, Sunday's opening time ("HH:MM"), so people can plan the next day; otherwise null. */
+export function opensTomorrow(spot: Hours, now: Date): string | null {
+  return berlinNow(now).day === "Sat" && spot.sun_open ? spot.sun_open.slice(0, 5) : null;
 }
 
 /** Needs the full post URL from a browser; short share links (vm.tiktok.com) cannot be parsed. */

@@ -1,8 +1,8 @@
 // ALL landing-page copy and site metadata lives here. Rewrite it in 2 minutes.
 export const siteConfig = {
-  name: "Your Product",
-  tagline: "One sentence that says what it does and for whom.",
-  description: "A longer description used for SEO and social previews (150 characters or so).",
+  name: "Kiez Plan", // working title: replace with the final brand name
+  tagline: "Pick 3 spots, send one link, your friends vote.",
+  description: "What to do in Neukölln and Kreuzberg right now: curated spots with video, one link for your group chat, one tap to vote.",
   hero: {
     title: "Plan your next trip in seconds",
     subtitle: "Placeholder subtitle: explain the value in one or two lines.",
