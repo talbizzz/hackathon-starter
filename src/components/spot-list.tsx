@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
-import { BottomSheet, collapsedHeight, type Snap } from "@/components/bottom-sheet";
+import { BottomSheet, halfHeight, type Snap } from "@/components/bottom-sheet";
 import { LangToggle } from "@/components/lang-toggle";
 import { SpotCard } from "@/components/spot-card";
 import { SpotMap, type Pin } from "@/components/spot-map";
@@ -53,9 +53,9 @@ export function SpotList({ spots }: { spots: Spot[] }) {
   const [flags, setFlags] = useState<Flag[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [picked, setPicked] = useState<string | null>(null);
-  const [snap, setSnap] = useState<Snap>("peek");
+  const [snap, setSnap] = useState<Snap>("half");
   // Pixels of the map hidden under the sheet, so pins are framed in the part that stays visible.
-  const [mapInset, setMapInset] = useState(() => (typeof window === "undefined" ? 0 : collapsedHeight()));
+  const [mapInset, setMapInset] = useState(() => (typeof window === "undefined" ? 0 : halfHeight()));
   const [hint, setHint] = useState<string | null>(null);
   // The plan saved for the current selection, so sharing twice does not create two plans.
   const [savedPlanId, setSavedPlanId] = useState<string | null>(null);
@@ -114,9 +114,9 @@ export function SpotList({ spots }: { spots: Spot[] }) {
   function pickFromMap(id: string) {
     setPicked(id);
     const wasCollapsed = snap === "peek";
-    if (wasCollapsed) setSnap("full");
-    // Keep the pin in the strip of map that stays visible when the sheet is collapsed again.
-    setMapInset(collapsedHeight());
+    if (wasCollapsed) setSnap("half");
+    // Frame the pin above a half-open sheet (fully open, the map is hidden anyway).
+    setMapInset(halfHeight());
     // Wait for the sheet to open before scrolling its list to the card.
     setTimeout(() => document.getElementById(`spot-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), wasCollapsed ? 320 : 0);
   }

@@ -2,20 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export type Snap = "peek" | "full";
+export type Snap = "peek" | "half" | "full";
 
-// Two resting heights, as shares of the screen: collapsed and open. Nothing in between.
-const PEEK = 0.2;
-const FULL = 0.9;
+const TOP_GAP = 76; // room left for the search bar when the sheet is fully open
+const HALF = 0.52;
 
-/** Height of the collapsed sheet in pixels (browser only). */
-export function collapsedHeight() {
-  return Math.round(window.innerHeight * PEEK);
+/** Height of the half-open sheet in pixels (browser only). */
+export function halfHeight() {
+  return Math.round(window.innerHeight * HALF);
 }
 
-// Collapsed, the sheet is 20% of the screen, or taller if its header and footer need more room.
-function snapHeight(snap: Snap, minPx: number) {
-  return snap === "peek" ? Math.max(collapsedHeight(), minPx) : Math.round(window.innerHeight * FULL);
+function snapHeight(snap: Snap, peekPx: number) {
+  return snap === "peek" ? peekPx : snap === "half" ? halfHeight() : window.innerHeight - TOP_GAP;
 }
 
 type Props = {
@@ -28,13 +26,13 @@ type Props = {
   children: React.ReactNode;
 };
 
-// A sheet over the map with two resting heights. Drag the handle, or tap it to toggle.
+// A sheet over the map with three resting heights. Drag the handle, or tap it to step through them.
 // The content scrolls inside the sheet, so dragging the list never moves the sheet by accident.
 export function BottomSheet({ snap, onSnap, header, footer, children }: Props) {
   const drag = useRef<{ startY: number; startHeight: number; moved: boolean } | null>(null);
   const [dragHeight, setDragHeight] = useState<number | null>(null);
 
-  // The room the header and footer need, so a collapsed sheet never cuts them off.
+  // Collapsed, the sheet is exactly as tall as its header and footer, whatever they currently contain.
   const top = useRef<HTMLDivElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const [peekPx, setPeekPx] = useState(120);
@@ -46,7 +44,7 @@ export function BottomSheet({ snap, onSnap, header, footer, children }: Props) {
     return () => observer.disconnect();
   }, []);
 
-  const restingHeight = snap === "peek" ? `max(${PEEK * 100}dvh, ${peekPx}px)` : `${FULL * 100}dvh`;
+  const restingHeight = snap === "peek" ? `${peekPx}px` : snap === "half" ? `${HALF * 100}dvh` : `calc(100dvh - ${TOP_GAP}px)`;
 
   function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -58,7 +56,7 @@ export function BottomSheet({ snap, onSnap, header, footer, children }: Props) {
     if (!d) return;
     const delta = d.startY - e.clientY;
     if (Math.abs(delta) > 6) d.moved = true;
-    if (d.moved) setDragHeight(Math.max(snapHeight("peek", peekPx), Math.min(snapHeight("full", peekPx), d.startHeight + delta)));
+    if (d.moved) setDragHeight(Math.max(peekPx, Math.min(window.innerHeight - TOP_GAP, d.startHeight + delta)));
   }
 
   function onPointerUp() {
@@ -66,12 +64,13 @@ export function BottomSheet({ snap, onSnap, header, footer, children }: Props) {
     drag.current = null;
     if (!d) return;
     if (!d.moved) {
-      // A tap toggles between collapsed and open.
-      onSnap(snap === "peek" ? "full" : "peek");
+      // A tap steps through the heights: collapsed opens to half, half to full, full back to half.
+      onSnap(snap === "half" ? "full" : "half");
     } else if (dragHeight !== null) {
-      // Let go past the midpoint and it opens; otherwise it collapses.
-      const midpoint = (snapHeight("peek", peekPx) + snapHeight("full", peekPx)) / 2;
-      onSnap(dragHeight > midpoint ? "full" : "peek");
+      const nearest = (["peek", "half", "full"] as Snap[]).reduce((best, s) =>
+        Math.abs(snapHeight(s, peekPx) - dragHeight) < Math.abs(snapHeight(best, peekPx) - dragHeight) ? s : best,
+      );
+      onSnap(nearest);
     }
     setDragHeight(null);
   }
@@ -95,7 +94,7 @@ export function BottomSheet({ snap, onSnap, header, footer, children }: Props) {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSnap(snap === "peek" ? "full" : "peek")}
+        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSnap(snap === "half" ? "full" : "half")}
         className="shrink-0 cursor-grab touch-none select-none px-4 pb-2 pt-2.5 active:cursor-grabbing"
       >
         <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
