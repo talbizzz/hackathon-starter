@@ -6,7 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SpotCard } from "@/components/spot-card";
 import { SpotMap, type Pin } from "@/components/spot-map";
 import { Events, getAttribution, track } from "@/lib/analytics";
-import { getDeviceId } from "@/lib/device";
+import { getDeviceId, uuid } from "@/lib/device";
 import { env } from "@/lib/env";
 import { useT } from "@/lib/i18n";
 import { shareLink } from "@/lib/share";
@@ -123,7 +123,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
   async function share() {
     track(Events.shareTapped);
     setHint(null);
-    const id = savedPlanId ?? crypto.randomUUID();
+    const id = savedPlanId ?? uuid();
     const url = `${env.NEXT_PUBLIC_SITE_URL}/p/${id}?utm_source=share`;
     // Open the share sheet right away (it must run inside the tap) and save the plan in parallel.
     const sharing = shareLink({ title: siteConfig.name, text: t("plan.shareText"), url });
