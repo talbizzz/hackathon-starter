@@ -11,7 +11,7 @@ import { getDeviceId } from "@/lib/device";
 import { env } from "@/lib/env";
 import { useFavorites } from "@/lib/favorites";
 import { useT } from "@/lib/i18n";
-import { shareLink } from "@/lib/share";
+import { canShare, copyLink, nativeShare } from "@/lib/share";
 import { mapsUrl, type Plan, type PlanSpot } from "@/lib/spots";
 import { setStored, useStored } from "@/lib/stored";
 import { createClient } from "@/lib/supabase/client";
@@ -54,6 +54,7 @@ export function PlanView({ planId }: { planId: string }) {
     return shared === "copied" ? t("plan.copied") : shared === "failed" ? t("share.failed") : null;
   });
   const [reel, setReel] = useState<PlanSpot[] | null>(null);
+  const [inviting, setInviting] = useState(false);
 
   const found = !!plan;
   useEffect(() => {
@@ -114,12 +115,13 @@ export function PlanView({ planId }: { planId: string }) {
     window.scrollTo({ top: 0 });
   }
 
-  async function invite() {
-    track(Events.shareTapped, { plan_id: planId });
+  // "Invite friends" offers two ways to pass the link on: the share sheet, or copying it.
+  async function invite(how: "share" | "copy") {
+    track(Events.shareTapped, { plan_id: planId, how });
     const url = `${env.NEXT_PUBLIC_SITE_URL}/p/${planId}?utm_source=share`;
-    const result = await shareLink({ title: siteConfig.name, text: t("plan.shareText"), url });
-    if (result === "copied") setMessage(t("plan.copied"));
-    if (result === "failed") setMessage(t("share.failed"));
+    if (how === "copy") return setMessage(t((await copyLink(url)) ? "plan.copied" : "share.failed"));
+    setMessage(null);
+    if (!(await nativeShare({ title: siteConfig.name, text: t("plan.shareText"), url }))) setMessage(t("share.failed"));
   }
 
   // The fullscreen videos start on the tapped spot and continue through the rest of the plan.
@@ -267,11 +269,36 @@ export function PlanView({ planId }: { planId: string }) {
         <p className="mt-5 text-secondary">{t("status.hidden")}</p>
       )}
 
-      {message && <p className="mt-4 text-center text-sm text-ink">{message}</p>}
       <div className="mt-6 flex flex-col items-center gap-3">
-        <button data-testid="invite" onClick={invite} className="w-full rounded-full bg-ink px-4 py-3 font-semibold text-white">
+        <button
+          data-testid="invite"
+          aria-expanded={inviting}
+          onClick={() => setInviting(!inviting)}
+          className="w-full rounded-full bg-ink px-4 py-3 font-semibold text-white"
+        >
           {t("status.invite")}
         </button>
+        {inviting && (
+          <div data-testid="invite-options" className="grid w-full grid-cols-2 gap-2">
+            {canShare() && (
+              <button data-testid="invite-share" onClick={() => invite("share")} className="rounded-full border border-neutral-300 bg-white px-4 py-3 font-medium">
+                {t("invite.share")}
+              </button>
+            )}
+            <button
+              data-testid="invite-copy"
+              onClick={() => invite("copy")}
+              className={`rounded-full border border-neutral-300 bg-white px-4 py-3 font-medium ${canShare() ? "" : "col-span-2"}`}
+            >
+              {t("invite.copy")}
+            </button>
+          </div>
+        )}
+        {message && (
+          <p data-testid="invite-message" className="text-center text-sm text-ink">
+            {message}
+          </p>
+        )}
         <Link href="/" className="text-sm font-medium underline">
           {t("vote.own")}
         </Link>
