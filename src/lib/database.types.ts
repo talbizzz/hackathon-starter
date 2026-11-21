@@ -14,21 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      admins: {
+        Row: {
+          user_id: string
+        }
+        Insert: {
+          user_id: string
+        }
+        Update: {
+          user_id?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          campaign: string | null
+          created_at: string
+          id: string
+          name: string
+          source: string | null
+          user_id: string | null
+        }
+        Insert: {
+          campaign?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          source?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          campaign?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          source?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           display_name: string | null
           id: string
+          source: string | null
         }
         Insert: {
           created_at?: string
           display_name?: string | null
           id: string
+          source?: string | null
         }
         Update: {
           created_at?: string
           display_name?: string | null
           id?: string
+          source?: string | null
         }
         Relationships: []
       }
@@ -37,16 +79,19 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          source: string | null
         }
         Insert: {
           created_at?: string
           email: string
           id?: string
+          source?: string | null
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
+          source?: string | null
         }
         Relationships: []
       }
@@ -55,7 +100,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      traction_stats: { Args: never; Returns: Json }
     }
     Enums: {
       [_ in never]: never

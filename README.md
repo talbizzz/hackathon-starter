@@ -17,8 +17,9 @@ Missing or invalid env vars fail the app at startup with a clear list (`src/lib/
 ## Where things are
 - Landing copy: `src/lib/site-config.ts` (the only file to edit to rewrite copy)
 - Protected pages: `src/app/(app)/...` and add the path to `PROTECTED` in `src/proxy.ts`
-- Analytics events: `src/lib/analytics.ts`
-- AI route: `src/app/api/ai/route.ts` (`AI_PROVIDER=anthropic|openai`, POST `{ "prompt": "..." }`, signed-in users only)
+- Analytics events: `src/lib/analytics.ts`. `track()` sends to PostHog and to the Supabase `events` table, tagged with the first-touch channel (`utm_source`, else referrer, else `direct`). Put `?utm_source=...&utm_campaign=...` on every link you share.
+- Traction numbers: `/stats` (visits, waitlist, signups, real users, per channel). Admin only: sign up, then run `insert into public.admins select id from auth.users where email = 'you@example.com';` in the Supabase SQL editor. A "real user" is a signed-in user who fired `Events.coreAction`, so call `track(Events.coreAction)` from the real feature.
+- AI route: `src/app/api/ai/route.ts` (`AI_PROVIDER=anthropic|openai|bedrock`, POST `{ "prompt": "..." }`, signed-in users only)
 
 ## Add a table + migration
 1. `pnpm exec supabase migration new add_trips` and edit the new SQL file in `supabase/migrations/`

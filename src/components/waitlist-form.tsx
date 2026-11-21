@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Events, track } from "@/lib/analytics";
+import { Events, getAttribution, track } from "@/lib/analytics";
 import { siteConfig } from "@/lib/site-config";
 
 export function WaitlistForm() {
@@ -12,7 +12,7 @@ export function WaitlistForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setState("loading");
-    const { error } = await createClient().from("waitlist").insert({ email: email.trim() });
+    const { error } = await createClient().from("waitlist").insert({ email: email.trim(), source: getAttribution().source });
     // 23505 = already on the list: treat as success
     if (error && error.code !== "23505") return setState("error");
     track(Events.waitlistSubmit);

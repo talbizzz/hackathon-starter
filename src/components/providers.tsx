@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import posthog from "posthog-js";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { trackVisit } from "@/lib/analytics";
 import { env } from "@/lib/env";
 
 let phReady = false;
@@ -22,6 +23,7 @@ function PageView() {
   const search = useSearchParams();
   useEffect(() => {
     initPostHog();
+    trackVisit();
     posthog.capture("$pageview", { $current_url: window.location.href });
   }, [pathname, search]);
   return null;

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Events, identify, track } from "@/lib/analytics";
+import { Events, getAttribution, identify, track } from "@/lib/analytics";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
@@ -20,7 +20,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     const supabase = createClient();
     const { data, error } =
       mode === "signup"
-        ? await supabase.auth.signUp({ email, password })
+        ? await supabase.auth.signUp({ email, password, options: { data: { source: getAttribution().source } } })
         : await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setError(error.message);
