@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "db:types": "set -a; . ./.env.local; set +a; supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema public > src/lib/database.types.ts.tmp && mv src/lib/database.types.ts.tmp src/lib/database.types.ts",
-    "db:push": "supabase db push"
+    "db:push": "supabase db push",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.11.0",
