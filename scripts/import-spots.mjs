@@ -4,6 +4,9 @@
 // Usage:  node scripts/import-spots.mjs scripts/data/batch-1.tsv > /tmp/spots.sql
 //         pnpm exec supabase db query --remote -f /tmp/spots.sql
 //
+// video_url is optional (a link to the original post, shown as credit). Spots stay hidden on the site until a
+// video file is uploaded for them at /admin.
+//
 // Columns, in order (extra columns after note_de are ignored, a header row is skipped):
 // name, district, category, indoor, price, address, station, sat_open, sat_close, sun_open, sun_close,
 // video_url, venue_handle, creator_handle, note_en, note_de
@@ -35,7 +38,7 @@ for (const line of rows) {
   const name = rawName.split(" — ")[0].trim(); // "Place — detail" becomes "Place"; the note carries the detail
   const problems = [];
   if (!CATEGORIES.includes(category)) problems.push(`unknown category "${category}"`);
-  if (!VIDEO.test(videoUrl ?? "")) problems.push("video_url is not a full TikTok or Instagram post link");
+  if (videoUrl && !VIDEO.test(videoUrl)) problems.push("video_url is not a full TikTok or Instagram post link");
   if (!address) problems.push("no address");
   if (!/^[0-3]$/.test(price)) problems.push(`price "${price}" is not 0-3`);
   if (problems.length) {

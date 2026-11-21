@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isOpenNow, mapsUrl, opensLaterToday, opensTomorrow, parseVideo } from "./spots";
+import { isOpenNow, mapsUrl, opensLaterToday, opensTomorrow } from "./spots";
 
 // Berlin is UTC+1 on this weekend.
 const at = (iso: string) => new Date(iso);
@@ -35,20 +35,6 @@ describe("opensTomorrow", () => {
   it("returns Sunday's opening time on Saturday", () => expect(opensTomorrow(sunDay, SAT_21_00)).toBe("10:00"));
   it("returns null on Saturday when Sunday is closed", () => expect(opensTomorrow(satEvening, SAT_21_00)).toBeNull());
   it("returns null on Sunday", () => expect(opensTomorrow(sunDay, SUN_09_00)).toBeNull());
-});
-
-describe("parseVideo", () => {
-  it("parses a TikTok URL with a query string", () =>
-    expect(parseVideo("https://www.tiktok.com/@scout2015/video/6718335390845095173?lang=en&q=1")).toEqual({
-      platform: "tiktok",
-      id: "6718335390845095173",
-    }));
-  it("parses an Instagram reel URL with a trailing slash", () =>
-    expect(parseVideo("https://www.instagram.com/reel/Df9daAtIwTJ/")).toEqual({ platform: "instagram", id: "Df9daAtIwTJ" }));
-  it("parses an Instagram post URL", () =>
-    expect(parseVideo("https://www.instagram.com/p/Df9daAtIwTJ/?igsh=abc")).toEqual({ platform: "instagram", id: "Df9daAtIwTJ" }));
-  it("rejects TikTok short links", () => expect(parseVideo("https://vm.tiktok.com/ZGabc123/")).toBeNull());
-  it("rejects garbage", () => expect(parseVideo("not a url")).toBeNull());
 });
 
 describe("mapsUrl", () => {

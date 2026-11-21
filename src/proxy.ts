@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Refreshes the Supabase session on every request and guards the (app) routes.
 // Add new protected paths to PROTECTED.
-const PROTECTED = ["/dashboard", "/stats"];
+const PROTECTED = ["/dashboard", "/stats", "/admin"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

@@ -111,7 +111,6 @@ export type Database = {
           created_at: string
           creator_handle: string | null
           id: string
-          image_url: string | null
           indoor: boolean
           lat: number | null
           lng: number | null
@@ -119,6 +118,7 @@ export type Database = {
           neighbourhood: string
           note_de: string | null
           note_en: string | null
+          poster_url: string | null
           price: number
           published: boolean
           sat_close: string | null
@@ -127,7 +127,8 @@ export type Database = {
           sun_close: string | null
           sun_open: string | null
           venue_handle: string | null
-          video_url: string
+          video_file_url: string | null
+          video_url: string | null
         }
         Insert: {
           address: string
@@ -135,7 +136,6 @@ export type Database = {
           created_at?: string
           creator_handle?: string | null
           id?: string
-          image_url?: string | null
           indoor?: boolean
           lat?: number | null
           lng?: number | null
@@ -143,6 +143,7 @@ export type Database = {
           neighbourhood: string
           note_de?: string | null
           note_en?: string | null
+          poster_url?: string | null
           price?: number
           published?: boolean
           sat_close?: string | null
@@ -151,7 +152,8 @@ export type Database = {
           sun_close?: string | null
           sun_open?: string | null
           venue_handle?: string | null
-          video_url: string
+          video_file_url?: string | null
+          video_url?: string | null
         }
         Update: {
           address?: string
@@ -159,7 +161,6 @@ export type Database = {
           created_at?: string
           creator_handle?: string | null
           id?: string
-          image_url?: string | null
           indoor?: boolean
           lat?: number | null
           lng?: number | null
@@ -167,6 +168,7 @@ export type Database = {
           neighbourhood?: string
           note_de?: string | null
           note_en?: string | null
+          poster_url?: string | null
           price?: number
           published?: boolean
           sat_close?: string | null
@@ -175,7 +177,8 @@ export type Database = {
           sun_close?: string | null
           sun_open?: string | null
           venue_handle?: string | null
-          video_url?: string
+          video_file_url?: string | null
+          video_url?: string | null
         }
         Relationships: []
       }
@@ -253,6 +256,7 @@ export type Database = {
         Args: { p_device_id?: string; p_plan_id: string }
         Returns: Json
       }
+      is_admin: { Args: never; Returns: boolean }
       traction_stats: { Args: never; Returns: Json }
     }
     Enums: {

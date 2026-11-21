@@ -1,13 +1,11 @@
 "use client";
 
-import { VideoEmbed } from "@/components/video-embed";
+import { VideoPlayer } from "@/components/video-player";
 import { useT } from "@/lib/i18n";
 import type { PlanSpot, Spot } from "@/lib/spots";
 
 type Props = {
   spot: Spot | PlanSpot;
-  videoOpen: boolean;
-  onOpenVideo: () => void;
   /** Small label next to the name, e.g. an opening time or "Leading". */
   badge?: React.ReactNode;
   /** Action area under the video (add to plan, vote, directions). */
@@ -15,7 +13,7 @@ type Props = {
   highlighted?: boolean;
 };
 
-export function SpotCard({ spot, videoOpen, onOpenVideo, badge, children, highlighted }: Props) {
+export function SpotCard({ spot, badge, children, highlighted }: Props) {
   const { t, lang } = useT();
   const price = spot.price === 0 ? t("price.free") : "€".repeat(spot.price);
   const note = lang === "de" ? (spot.note_de ?? spot.note_en) : (spot.note_en ?? spot.note_de);
@@ -29,7 +27,7 @@ export function SpotCard({ spot, videoOpen, onOpenVideo, badge, children, highli
         {[t(`cat.${spot.category}`), spot.neighbourhood, spot.station, price].filter(Boolean).join(" · ")}
       </p>
       {note && <p className="mt-2 text-sm text-neutral-700">{note}</p>}
-      <VideoEmbed spot={spot} open={videoOpen} onOpen={onOpenVideo} />
+      <VideoPlayer spot={spot} />
       {children && <div className="mt-3">{children}</div>}
     </article>
   );

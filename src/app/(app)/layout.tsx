@@ -19,6 +19,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-6">
             <Link href="/dashboard" className="font-semibold">{siteConfig.name}</Link>
             <Link href="/dashboard" className="text-sm text-neutral-600 hover:text-black">Dashboard</Link>
+            <Link href="/admin" className="text-sm text-neutral-600 hover:text-black">Spot videos</Link>
+            <Link href="/stats" className="text-sm text-neutral-600 hover:text-black">Stats</Link>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-neutral-500">{profile?.display_name ?? data.user.email}</span>

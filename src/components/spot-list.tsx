@@ -51,7 +51,6 @@ export function SpotList({ spots }: { spots: Spot[] }) {
   const [categories, setCategories] = useState<string[]>([]);
   const [flags, setFlags] = useState<Flag[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
-  const [openVideo, setOpenVideo] = useState<string | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const [hint, setHint] = useState<string | null>(null);
   // The plan saved for the current selection, so sharing twice does not create two plans.
@@ -101,7 +100,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
           lat: s.lat!,
           lng: s.lng!,
           emoji: CATEGORIES[s.category as Category] ?? CATEGORIES.other,
-          imageUrl: s.image_url,
+          imageUrl: s.poster_url,
           state: selected.includes(s.id) ? "selected" : sections.openNow.includes(s) ? "open" : "closed",
           label: picked === s.id,
         })),
@@ -152,8 +151,6 @@ export function SpotList({ spots }: { spots: Spot[] }) {
       spot={spot}
       badge={badge}
       highlighted={selected.includes(spot.id) || picked === spot.id}
-      videoOpen={openVideo === spot.id}
-      onOpenVideo={() => setOpenVideo(spot.id)}
     >
       <button
         data-testid="add-to-plan"

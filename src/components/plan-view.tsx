@@ -39,7 +39,6 @@ export function PlanView({ planId }: { planId: string }) {
   const [typedName, setTypedName] = useState<string | null>(null);
   const name = typedName ?? storedName ?? "";
   const nameInput = useRef<HTMLInputElement>(null);
-  const [openVideo, setOpenVideo] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   const found = !!plan;
@@ -119,8 +118,6 @@ export function PlanView({ planId }: { planId: string }) {
               spot={spot}
               highlighted={mine}
               badge={spot.id === leaderId ? `★ ${t("vote.leading")}` : undefined}
-              videoOpen={openVideo === spot.id}
-              onOpenVideo={() => setOpenVideo(spot.id)}
             >
               <p className="mb-2 text-sm">
                 <span className="font-semibold">
