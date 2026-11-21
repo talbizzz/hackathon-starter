@@ -25,7 +25,7 @@ export function SpotCard({ spot, badge, children, highlighted, onWatch }: Props)
   const { t, lang } = useT();
   const price = spot.price === 0 ? t("price.free") : "€".repeat(spot.price);
   const note = lang === "de" ? (spot.note_de ?? spot.note_en) : (spot.note_en ?? spot.note_de);
-  const frame = `scroll-mt-2 rounded-2xl border bg-white p-4 ${highlighted ? "border-ink" : "border-neutral-200"}`;
+  const frame = `scroll-mt-2 rounded-2xl border bg-white p-4 ${highlighted ? "border-ink ring-2 ring-ink" : "border-neutral-200"}`;
   const meta = [t(`cat.${spot.category}`), spot.neighbourhood, spot.station, price].filter(Boolean).join(" · ");
   const heading = (
     <div className="flex items-start justify-between gap-3">

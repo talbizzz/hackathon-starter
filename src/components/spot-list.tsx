@@ -109,7 +109,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
           emoji: CATEGORIES[s.category as Category] ?? CATEGORIES.other,
           imageUrl: s.poster_url,
           state: selected.includes(s.id) ? "selected" : sections.openNow.includes(s) ? "open" : "closed",
-          label: picked === s.id,
+          picked: picked === s.id,
         })),
     [visible, selected, sections, picked],
   );
@@ -133,8 +133,9 @@ export function SpotList({ spots }: { spots: Spot[] }) {
     return t("status.closed");
   }
 
-  function pickFromMap(id: string) {
+  function pickFromMap(id: string | null) {
     setPicked(id);
+    if (!id) return;
     const wasCollapsed = snap === "peek";
     if (wasCollapsed) setSnap("half");
     // Frame the pin above a half-open sheet (fully open, the map is hidden anyway).
@@ -181,7 +182,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
       key={spot.id}
       spot={spot}
       badge={badge}
-      highlighted={selected.includes(spot.id) || picked === spot.id}
+      highlighted={picked === spot.id}
       onWatch={spot.video_file_url ? () => watch(spot) : undefined}
     >
       <button

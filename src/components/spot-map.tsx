@@ -12,8 +12,8 @@ export type Pin = {
   emoji: string;
   imageUrl: string | null;
   state: "open" | "closed" | "selected";
-  /** Show the name next to the icon. Off by default: with dozens of spots the labels would cover each other. */
-  label: boolean;
+  /** The spot the visitor tapped: drawn larger, with its name, above the other pins. */
+  picked: boolean;
 };
 
 const BERLIN: [number, number] = [52.5, 13.4];
@@ -21,30 +21,31 @@ const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt
 
 // Leaflet draws pins from HTML strings. A pin shows the spot's picture when it has one, else its category icon.
 function pinHtml(pin: Pin) {
-  const tone =
-    pin.state === "selected"
-      ? "bg-brand text-white border-brand"
-      : pin.state === "open"
-        ? "bg-white text-ink border-ink"
-        : "bg-white text-secondary border-neutral-300";
   const name = escapeHtml(pin.name);
-  const body = pin.imageUrl
-    ? `<img src="${escapeHtml(pin.imageUrl)}" alt="" class="h-16 w-12 rounded-md object-cover" /><span class="block max-w-12 truncate text-center text-[10px] font-semibold">${name}</span>`
-    : `<span class="text-lg leading-none">${pin.emoji}</span>${pin.label ? `<span class="max-w-28 truncate pr-1 text-xs font-semibold">${name}</span>` : ""}`;
-  return `<div title="${name}" class="absolute flex -translate-x-1/2 -translate-y-full cursor-pointer items-center gap-1 whitespace-nowrap rounded-full border-2 p-1.5 shadow-md ${pin.imageUrl ? "flex-col rounded-xl p-1" : ""} ${tone}">${body}</div>`;
+  // Border colour says what the spot is: in your plan, open now, or closed.
+  const border = pin.state === "selected" ? "border-brand" : pin.state === "open" ? "border-ink" : "border-white";
+  // Pins stay small so they do not cover each other; the tapped one grows and shows its name.
+  const face = pin.imageUrl
+    ? `<img src="${escapeHtml(pin.imageUrl)}" alt="" class="${pin.picked ? "h-24 w-16" : "h-12 w-9"} rounded-lg border-[3px] ${border} bg-ink object-cover shadow-md" />`
+    : `<span class="flex ${pin.picked ? "h-14 w-14 text-2xl" : "h-9 w-9 text-lg"} items-center justify-center rounded-full border-[3px] ${border} bg-white leading-none shadow-md">${pin.emoji}</span>`;
+  const label = pin.picked
+    ? `<span class="mt-1 max-w-36 truncate rounded-full bg-ink px-2.5 py-1 text-xs font-semibold text-white shadow-md">${name}</span>`
+    : "";
+  return `<div title="${name}" data-picked="${pin.picked}" class="absolute flex -translate-x-1/2 -translate-y-full cursor-pointer flex-col items-center">${face}${label}</div>`;
 }
 
 type Props = {
   pins: Pin[];
-  onPick: (id: string) => void;
+  /** Called with the tapped spot, or null when the visitor taps the empty map. */
+  onPick: (id: string | null) => void;
   /** How many pixels at the bottom of the map are covered by the sheet. */
   bottomInset: number;
   /** The spot to bring into the visible part of the map. */
   focusId: string | null;
 };
 
-// The search bar, plus the height of a picture pin: pins hang upwards from their location.
-const TOP_INSET = 96 + 100;
+// The search bar, plus the height of a tapped picture pin with its name: pins hang upwards from their location.
+const TOP_INSET = 96 + 130;
 
 export function SpotMap({ pins, onPick, bottomInset, focusId }: Props) {
   const container = useRef<HTMLDivElement>(null);
@@ -69,6 +70,8 @@ export function SpotMap({ pins, onPick, bottomInset, focusId }: Props) {
         maxZoom: 18,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
+      // Tapping the empty map lets go of the tapped spot, so its enlarged pin stops covering its neighbours.
+      map.on("click", () => pick.current(null));
       leaflet.current = { L, map, layer: L.layerGroup().addTo(map) };
       setReady(true);
     });
@@ -87,7 +90,7 @@ export function SpotMap({ pins, onPick, bottomInset, focusId }: Props) {
       ctx.L.marker([pin.lat, pin.lng], {
         icon: ctx.L.divIcon({ html: pinHtml(pin), className: "", iconSize: [0, 0] }),
         // Open and selected spots sit on top of closed ones where pins overlap.
-        zIndexOffset: pin.label ? 3000 : pin.state === "selected" ? 2000 : pin.state === "open" ? 1000 : 0,
+        zIndexOffset: pin.picked ? 3000 : pin.state === "selected" ? 2000 : pin.state === "open" ? 1000 : 0,
       })
         .on("click", () => pick.current(pin.id))
         .addTo(ctx.layer);
