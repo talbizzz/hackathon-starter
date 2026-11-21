@@ -17,6 +17,8 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Test
+        run: pnpm test
       - name: Build (NEXT_PUBLIC_* are inlined here)
         run: pnpm exec opennextjs-cloudflare build
         env:

@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
     "db:types": "set -a; . ./.env.local; set +a; supabase gen types typescript --remote=$SUPABASE_PROJECT_ID --schema public > src/lib/database.types.ts.tmp && mv src/lib/database.types.ts.tmp src/lib/database.types.ts",
     "db:push": "supabase db push --remote --yes",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
@@ -36,6 +37,7 @@
     "supabase": "^3.2.0",
     "tailwindcss": "4.3.3",
     "typescript": "^5",
+    "vitest": "^5.1.1",
     "wrangler": "^4.165.0"
   },
   "packageManager": "pnpm@11.21.0"
