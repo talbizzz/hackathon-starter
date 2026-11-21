@@ -80,12 +80,15 @@ export function SpotMap({ pins, onPick, bottomInset, focusId, area }: Props) {
         maxBounds: BERLIN_BOUNDS,
         maxBoundsViscosity: 1,
         minZoom: 10,
+        maxZoom: 16,
       }).setView(BERLIN, 11);
       L.control.attribution({ position: "topright", prefix: false }).addTo(map);
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 18,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).addTo(map);
+      // A quiet grey base map so the pins carry the colour, with place names on a separate layer on top.
+      for (const layer of ["World_Light_Gray_Base", "World_Light_Gray_Reference"])
+        L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${layer}/MapServer/tile/{z}/{y}/{x}`, {
+          maxZoom: 16,
+          attribution: layer.endsWith("Base") ? "Map &copy; Esri" : undefined,
+        }).addTo(map);
       // Tapping the empty map lets go of the tapped spot, so its enlarged pin stops covering its neighbours.
       map.on("click", () => pick.current(null));
       leaflet.current = { L, map, layer: L.layerGroup().addTo(map) };
