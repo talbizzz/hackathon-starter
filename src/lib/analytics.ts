@@ -21,6 +21,8 @@ export const Events = {
   planOpened: "plan_opened",
   voteCast: "vote_cast",
   directionsTapped: "directions_tapped",
+  offerViewed: "offer_viewed",
+  checkoutClicked: "checkout_clicked",
 } as const;
 
 const ATTRIBUTION_KEY = "attribution";

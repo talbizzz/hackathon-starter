@@ -5,6 +5,13 @@ export const siteConfig = {
     tiktok: "https://www.tiktok.com/@nebenmir_app",
     instagram: "https://www.instagram.com/nebenmir.app/",
   },
+  // Paid offer on /plan-for-me. Pay buttons open https://paypal.me/<paypalMe>/<price>EUR.
+  // Empty = buttons hidden and the page says payments open soon. Prices in EUR.
+  offer: {
+    paypalMe: "",
+    readyPlanPrice: "3.99",
+    customPlanPrice: "29",
+  },
   tagline: "Find something to do in Berlin. Let your friends vote.",
   description: "What to do around you in Berlin: curated spots on a map, each with a video. Pick a few, send one link, and let your friends vote.",
   hero: {
