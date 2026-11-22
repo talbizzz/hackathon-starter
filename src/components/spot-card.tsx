@@ -44,7 +44,7 @@ export function SpotCard({ spot, badge, children, highlighted, onWatch, favorite
         >
           {spot.poster_url && (
             // eslint-disable-next-line @next/next/no-img-element -- small remote still, served as is
-            <img src={spot.poster_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            <img src={spot.poster_url} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
           )}
           {onWatch && (
             <span className="absolute inset-0 flex items-center justify-center">
