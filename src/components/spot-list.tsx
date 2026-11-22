@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { BottomSheet, halfHeight, type Snap } from "@/components/bottom-sheet";
+import { FirstScreen } from "@/components/first-screen";
 import { LangToggle } from "@/components/lang-toggle";
 import { LocationSearch } from "@/components/location-search";
 import { Logo } from "@/components/logo";
@@ -11,11 +12,12 @@ import { ReelViewer } from "@/components/reel-viewer";
 import { SpotCard } from "@/components/spot-card";
 import { SpotMap, type Pin } from "@/components/spot-map";
 import { Events, getAttribution, track } from "@/lib/analytics";
-import type { Area } from "@/lib/areas";
+import { AREAS, type Area } from "@/lib/areas";
 import { CATEGORIES, categoryColor } from "@/lib/categories";
 import { getDeviceId, uuid } from "@/lib/device";
 import { env } from "@/lib/env";
 import { useFavorites } from "@/lib/favorites";
+import { MIN_CARDS, pickFirstScreenSpots, type FirstArea } from "@/lib/first-screen";
 import { useT } from "@/lib/i18n";
 import { shareLink } from "@/lib/share";
 import { isOpenNow, opensLaterToday, opensTomorrow, type Spot } from "@/lib/spots";
@@ -47,7 +49,11 @@ export function SpotList({ spots, startWithPlan = false }: { spots: Spot[]; star
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   // Browsing by default. A plan starts from the setup screen, and only then can spots be added.
   const [plan, setPlan] = useState<PlanConfig | null>(null);
-  const [setupOpen, setSetupOpen] = useState(startWithPlan);
+  // New visitors (/map?plan=new) start on videos + "Pick your area". Without enough videos, the old setup screen opens instead.
+  const firstCards = useMemo(() => pickFirstScreenSpots(spots), [spots]);
+  const hasFirstScreen = firstCards.length >= MIN_CARDS;
+  const [firstOpen, setFirstOpen] = useState(startWithPlan && hasFirstScreen);
+  const [setupOpen, setSetupOpen] = useState(startWithPlan && !hasFirstScreen);
   const [sending, setSending] = useState(false);
   const minute = useSyncExternalStore(subscribeClock, currentMinute, () => null);
   const [search, setSearch] = useState("");
@@ -165,6 +171,15 @@ export function SpotList({ spots, startWithPlan = false }: { spots: Spot[]; star
     track(Events.planStarted, config);
   }
 
+  // "Pick your area": move the map there and start a plan right away, no setup questions and no login.
+  function pickFirstArea(name: FirstArea) {
+    track(Events.areaPicked, { area: name, from: "first_screen" });
+    setArea(AREAS.find((a) => a.name === name) ?? null);
+    setMapInset(halfHeight());
+    setFirstOpen(false);
+    startPlan({ participants: 3, choices: 3 });
+  }
+
   function cancelPlan() {
     setPlan(null);
     setSelected([]);
@@ -270,6 +285,10 @@ export function SpotList({ spots, startWithPlan = false }: { spots: Spot[]; star
     // Mobile-first: on a wide screen the app stays a phone-width column, centred on a dark backdrop.
     <div className="fixed inset-0 bg-ink">
       <div className="relative mx-auto h-full max-w-md overflow-hidden bg-neutral-200">
+      {firstOpen ? (
+        <FirstScreen cards={firstCards} onPick={pickFirstArea} />
+      ) : (
+        <>
       <SpotMap pins={pins} onPick={pickFromMap} bottomInset={mapInset} focusId={picked} area={area} />
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[1100] flex items-center gap-2 px-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
@@ -335,6 +354,8 @@ export function SpotList({ spots, startWithPlan = false }: { spots: Spot[]; star
           </>
         )}
       </BottomSheet>
+        </>
+      )}
 
       {reel && (
         <ReelViewer
