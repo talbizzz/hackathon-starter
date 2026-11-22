@@ -22,6 +22,11 @@ const MAX_BYTES = 95 * 1024 * 1024;
 type Bucket = {
   put(key: string, value: ReadableStream, options: { httpMetadata: { contentType: string; cacheControl: string } }): Promise<unknown>;
 };
+// Workers provides this globally; the project's DOM types do not declare it.
+type FixedLengthStreamConstructor = new (length: number) => {
+  readable: ReadableStream<Uint8Array>;
+  writable: WritableStream<Uint8Array>;
+};
 
 const fail = (status: number, error: string) => Response.json({ error }, { status });
 
@@ -57,11 +62,29 @@ export async function PUT(request: Request) {
   if (request.headers.get("content-type")?.split(";")[0] !== contentType) return fail(415, `Content-Type must be ${contentType}.`);
 
   const length = Number(request.headers.get("content-length"));
-  if (!Number.isFinite(length) || length <= 0) return fail(411, "Content-Length is required.");
+  if (!Number.isSafeInteger(length) || length <= 0) return fail(411, "Content-Length is required.");
   if (length > MAX_BYTES) return fail(413, `File is over ${MAX_BYTES / 1024 / 1024} MB. Export a smaller version.`);
   if (!request.body) return fail(400, "Empty body.");
 
-  // The key has a new upload id every time, so a replaced video is never served from an old cache.
-  await bucket.put(key, request.body, { httpMetadata: { contentType, cacheControl: "public, max-age=31536000, immutable" } });
+  // OpenNext rebuilds the request body as a Node/web stream, losing the known-length
+  // metadata required by R2. Restore it without buffering the video in memory.
+  const { FixedLengthStream } = globalThis as unknown as { FixedLengthStream: FixedLengthStreamConstructor };
+  const fixed = new FixedLengthStream(length);
+  const transfer = new AbortController();
+  const pipe = request.body.pipeTo(fixed.writable, { signal: transfer.signal });
+  try {
+    // The key has a new upload id every time, so replaced videos bypass old caches.
+    await Promise.all([
+      pipe,
+      bucket.put(key, fixed.readable, { httpMetadata: { contentType, cacheControl: "public, max-age=31536000, immutable" } }),
+    ]);
+  } catch (error) {
+    // A rejected R2 write may leave the pipe blocked on backpressure. Cancel both
+    // ends so the incoming upload does not keep running after a failed write.
+    transfer.abort(error);
+    await Promise.allSettled([fixed.readable.cancel(error), pipe]);
+    console.error("R2 media upload failed", error);
+    return fail(502, "Video storage upload failed. Please retry.");
+  }
   return Response.json({ url: `${publicUrl.replace(/\/$/, "")}/${key}` });
 }
