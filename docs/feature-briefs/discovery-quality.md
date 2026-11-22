@@ -11,6 +11,7 @@ A visitor can find an appropriate place, save choices, share a durable plan, rec
 - Verify the existing happy path on two independent browser sessions: browse -> choose -> create -> share -> open -> vote -> winner/directions. Capture exact tested revision and data fixtures; historical tests do not prove this release.
 - Test database failure/retry, zero results, no GPS/denied permission, unknown hours, no video, changing filters after selection and duplicate taps. Preserve useful selection state; distinguish no matches from failed loading.
 - Keep map and list alternatives usable; no visitor should need precise geolocation or a map gesture to find a place.
+- Check weekday behavior explicitly: current opening-hour helpers/data focus on Saturday/Sunday. Unknown weekday availability must not be presented as confirmed closed.
 - Stable place details and shareable filter/selection state are the next scope after the flow is reliable. Coordinate route IDs with content-trust; avoid claiming arbitrary query parameters already work.
 - Verify anonymous user flow before adding account requirements. Existing auth/payment work belongs to metaphysicist1/launch-readiness and must be reviewed separately.
 
