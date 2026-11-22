@@ -6,9 +6,21 @@ on:
 
 concurrency: deploy-prod
 
+permissions:
+  contents: read
+
 jobs:
+  checks:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
+
   deploy:
+    # workflow_dispatch exposes a branch picker. Only main may reach production.
+    if: github.ref == 'refs/heads/main'
+    needs: checks
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -17,8 +29,6 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Test
-        run: pnpm test
       - name: Build (NEXT_PUBLIC_* are inlined here)
         run: pnpm exec opennextjs-cloudflare build
         env:
