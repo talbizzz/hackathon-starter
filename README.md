@@ -1,4 +1,4 @@
-# Hackathon starter
+# Hackathon NebenMir.app
 
 Next.js 16 (App Router, TS, Tailwind) · Supabase (Postgres, Auth, Storage) · TanStack Query · PostHog · Anthropic + OpenAI · Cloudflare Workers (OpenNext). pnpm only.
 
