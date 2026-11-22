@@ -1,8 +1,11 @@
+import { PRIVATE_ROBOTS } from "@/lib/seo";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SignOutButton } from "@/components/sign-out-button";
 import { createClient } from "@/lib/supabase/server";
 import { siteConfig } from "@/lib/site-config";
+
+export const metadata = { robots: PRIVATE_ROBOTS };
 
 // Protected route group: add new app pages under src/app/(app)/ and add the path to PROTECTED in src/proxy.ts.
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
