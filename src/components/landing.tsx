@@ -37,11 +37,12 @@ function BrowseLink() {
 
 // The picture next to the headline. To change it, replace the files in public/landing/ or edit this one constant.
 //   kind "video": a muted, looping clip. It behaves like a GIF but is about ten times smaller. MP4 (H.264) plays everywhere.
+//     Keep the file at public/landing/hero.mp4 (src/app/media/hero.mp4/route.ts serves it); for another file name, change FILE there.
 //   kind "image": any GIF, PNG or JPG photo. Keep a GIF under about 2 MB so it loads quickly inside Instagram.
 // The frame is portrait (about 9:19) and crops the file to fit, so portrait files work best.
 const HERO_MEDIA: { kind: "video" | "image"; src: string; poster?: string } = {
   kind: "video",
-  src: "/landing/hero.mp4",
+  src: "/media/hero.mp4", // served by src/app/media/hero.mp4/route.ts from public/landing/hero.mp4 (range requests, for iPhones)
   poster: "/landing/hero-poster.jpg",
 };
 
