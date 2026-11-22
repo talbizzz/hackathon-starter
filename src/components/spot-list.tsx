@@ -40,14 +40,14 @@ function toggled<T>(list: T[], item: T) {
   return list.includes(item) ? list.filter((x) => x !== item) : [...list, item];
 }
 
-export function SpotList({ spots }: { spots: Spot[] }) {
+export function SpotList({ spots, startWithPlan = false }: { spots: Spot[]; startWithPlan?: boolean }) {
   const { t } = useT();
   const router = useRouter();
   const favorites = useFavorites();
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   // Browsing by default. A plan starts from the setup screen, and only then can spots be added.
   const [plan, setPlan] = useState<PlanConfig | null>(null);
-  const [setupOpen, setSetupOpen] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(startWithPlan);
   const [sending, setSending] = useState(false);
   const minute = useSyncExternalStore(subscribeClock, currentMinute, () => null);
   const [search, setSearch] = useState("");

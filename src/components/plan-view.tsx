@@ -75,7 +75,7 @@ export function PlanView({ planId }: { planId: string }) {
     return shell(
       <div className="py-10 text-center">
         <p className="text-ink">{t("vote.notFound")}</p>
-        <Link href="/" className="mt-4 inline-block rounded-full bg-brand px-5 py-2.5 font-semibold text-white">
+        <Link href="/map?plan=new" className="mt-4 inline-block rounded-full bg-brand px-5 py-2.5 font-semibold text-white">
           {t("vote.own")}
         </Link>
       </div>,
@@ -299,7 +299,7 @@ export function PlanView({ planId }: { planId: string }) {
             {message}
           </p>
         )}
-        <Link href="/" className="text-sm font-medium underline">
+        <Link href="/map?plan=new" className="text-sm font-medium underline">
           {t("vote.own")}
         </Link>
       </div>

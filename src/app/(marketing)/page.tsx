@@ -1,9 +1,8 @@
-import { SpotList } from "@/components/spot-list";
-import { createClient } from "@/lib/supabase/server";
+import { Landing } from "@/components/landing";
 
-// The home page is the product: curated spots, filtered and shortlisted in the browser.
-export default async function Home() {
-  const supabase = await createClient();
-  const { data: spots } = await supabase.from("spots").select("*").order("name");
-  return <SpotList spots={spots ?? []} />;
+// The front door: what the product is, and one button into it. Static, so it loads fast inside Instagram.
+export const metadata = { alternates: { canonical: "/" } };
+
+export default function Home() {
+  return <Landing />;
 }
