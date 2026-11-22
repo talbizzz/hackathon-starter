@@ -6,8 +6,15 @@ import { uuid } from "@/lib/device";
 import type { Spot } from "@/lib/spots";
 import { createClient } from "@/lib/supabase/client";
 
-const BUCKET = "spot-media";
-const MAX_BYTES = 50 * 1024 * 1024;
+const MAX_BYTES = 95 * 1024 * 1024; // same limit as /api/media
+
+// Send a file to Cloudflare R2 through the admin-only upload route. Returns its public URL.
+async function uploadMedia(key: string, body: Blob, contentType: string): Promise<string> {
+  const res = await fetch(`/api/media?key=${encodeURIComponent(key)}`, { method: "PUT", headers: { "Content-Type": contentType }, body });
+  const json = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
+  if (!res.ok || !json?.url) throw new Error(json?.error ?? `upload failed (${res.status})`);
+  return json.url;
+}
 
 // A still frame from the video, used as its poster and as the picture on the map pin.
 async function makePoster(file: File): Promise<Blob | null> {
@@ -61,26 +68,22 @@ export function AdminSpots() {
 
   async function upload(spot: Spot, file: File) {
     setMessage(null);
-    if (file.size > MAX_BYTES) return setMessage({ spotId: spot.id, text: "File is over 50 MB. Export a smaller version." });
+    if (file.size > MAX_BYTES) return setMessage({ spotId: spot.id, text: "File is over 95 MB. Export a smaller version." });
     setBusy(spot.id);
     try {
       const stamp = uuid(); // unique name per upload, so a replaced video is never served from cache
       const extension = file.name.split(".").pop()?.toLowerCase() || "mp4";
-      const videoPath = `${spot.id}/${stamp}.${extension}`;
-      const uploaded = await supabase.storage.from(BUCKET).upload(videoPath, file, { contentType: file.type, cacheControl: "31536000" });
-      if (uploaded.error) throw uploaded.error;
+      const videoUrl = await uploadMedia(`${spot.id}/${stamp}.${extension}`, file, file.type || "video/mp4");
 
       let posterUrl: string | null = null;
       const poster = await makePoster(file);
       if (poster) {
-        const posterPath = `${spot.id}/${stamp}.jpg`;
-        const posted = await supabase.storage.from(BUCKET).upload(posterPath, poster, { contentType: "image/jpeg", cacheControl: "31536000" });
-        if (!posted.error) posterUrl = supabase.storage.from(BUCKET).getPublicUrl(posterPath).data.publicUrl;
+        posterUrl = await uploadMedia(`${spot.id}/${stamp}.jpg`, poster, "image/jpeg").catch(() => null);
       }
 
       const saved = await supabase
         .from("spots")
-        .update({ video_file_url: supabase.storage.from(BUCKET).getPublicUrl(videoPath).data.publicUrl, poster_url: posterUrl })
+        .update({ video_file_url: videoUrl, poster_url: posterUrl })
         .eq("id", spot.id);
       if (saved.error) throw saved.error;
       setMessage({ spotId: spot.id, text: posterUrl ? "Uploaded. The spot is live." : "Uploaded and live, but no still could be made from this file (the map pin shows an icon)." });

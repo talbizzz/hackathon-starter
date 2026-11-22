@@ -9,5 +9,9 @@
   "routes": [{ "pattern": "nebenmir.app", "custom_domain": true }],
   // Keep the workers.dev address alive too: setting routes switches it off unless this is true.
   "workers_dev": true,
+  // Spot videos and stills live in an R2 bucket. The app writes to it through this binding (no key needed)
+  // and the browser reads from its public domain. See src/app/api/media/route.ts.
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "nebenmir-media" }],
+  "vars": { "MEDIA_PUBLIC_URL": "https://media.nebenmir.app" },
   "observability": { "enabled": true }
 }

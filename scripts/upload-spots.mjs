@@ -9,7 +9,10 @@
 // video_file: the file name of that spot's video in the same folder.
 //
 // Check first (writes nothing):   node --env-file=.env.local scripts/upload-spots.mjs <folder>
-// Upload for real:                ADMIN_EMAIL=you@x.com ADMIN_PASSWORD=... node --env-file=.env.local scripts/upload-spots.mjs <folder> --go
+// Upload for real:                ADMIN_EMAIL=you@x.com ADMIN_PASSWORD=... UPLOAD_SITE_URL=https://nebenmir.app node --env-file=.env.local scripts/upload-spots.mjs <folder> --go
+//
+// The files go to Cloudflare R2 through the site's /api/media route, so UPLOAD_SITE_URL must be the deployed site
+// (not localhost) and nobody needs an R2 key: the admin account is the only permission used.
 //
 // Needs ffmpeg, and an account that is an admin (see /admin on the site). Only upload videos you may host.
 import { execFileSync } from "node:child_process";
@@ -25,7 +28,6 @@ if (!folder || !existsSync(join(folder, "spots.tsv"))) {
   process.exit(1);
 }
 const CATEGORIES = ["food", "drinks", "market", "culture", "sport", "outdoors", "nightlife", "other"];
-const BUCKET = "spot-media";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const clean = (v) => (v && v.trim() ? v.trim() : null);
 
@@ -86,6 +88,22 @@ const login = await db.auth.signInWithPassword({ email: process.env.ADMIN_EMAIL 
 if (login.error) throw new Error(`Login failed: ${login.error.message}. Set ADMIN_EMAIL and ADMIN_PASSWORD.`);
 if (!(await db.rpc("is_admin")).data) throw new Error("This account is not an admin. Open /admin on the site and follow the instruction there.");
 
+const site = (process.env.UPLOAD_SITE_URL ?? "").replace(/\/$/, "");
+if (!/^https:\/\//.test(site)) throw new Error("Set UPLOAD_SITE_URL to the deployed site, e.g. UPLOAD_SITE_URL=https://nebenmir.app");
+const token = login.data.session.access_token;
+
+// Send one file to R2 through the site. Returns its public URL.
+async function uploadMedia(key, file, type) {
+  const res = await fetch(`${site}/api/media?key=${encodeURIComponent(key)}`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": type },
+    body: readFileSync(file),
+  });
+  const json = await res.json().catch(() => null);
+  if (!res.ok || !json?.url) throw new Error(json?.error ?? `upload failed (${res.status})`);
+  return json.url;
+}
+
 const work = mkdtempSync(join(tmpdir(), "spots-"));
 let failed = 0;
 for (const { row, video_file } of spots) {
@@ -105,13 +123,9 @@ for (const { row, video_file } of spots) {
     if (saved.error) throw saved.error;
     const id = saved.data.id;
 
-    for (const [file, type] of [[mp4, "video/mp4"], [jpg, "image/jpeg"]]) {
-      const path = `${id}/${stamp}.${type === "video/mp4" ? "mp4" : "jpg"}`;
-      const up = await db.storage.from(BUCKET).upload(path, readFileSync(file), { contentType: type, cacheControl: "31536000" });
-      if (up.error) throw up.error;
-    }
-    const url = (ext) => db.storage.from(BUCKET).getPublicUrl(`${id}/${stamp}.${ext}`).data.publicUrl;
-    const live = await db.from("spots").update({ video_file_url: url("mp4"), poster_url: url("jpg") }).eq("id", id);
+    const videoUrl = await uploadMedia(`${id}/${stamp}.mp4`, mp4, "video/mp4");
+    const posterUrl = await uploadMedia(`${id}/${stamp}.jpg`, jpg, "image/jpeg");
+    const live = await db.from("spots").update({ video_file_url: videoUrl, poster_url: posterUrl }).eq("id", id);
     if (live.error) throw live.error;
     console.log(`LIVE     ${row.name} (${existing.data ? "updated" : "new"}, video ${(statSync(mp4).size / 1e6).toFixed(1)} MB)`);
   } catch (error) {
