@@ -3,12 +3,14 @@
 import "leaflet/dist/leaflet.css";
 import type { LayerGroup, Map as LeafletMap } from "leaflet";
 import { useEffect, useRef, useState } from "react";
+import { BRAND, categoryColor } from "@/lib/categories";
 
 export type Pin = {
   id: string;
   name: string;
   lat: number;
   lng: number;
+  category: string;
   imageUrl: string | null;
   state: "open" | "closed" | "selected";
   /** The spot the visitor tapped: drawn larger, with its name, above the other pins. */
@@ -25,20 +27,34 @@ const BERLIN_BOUNDS: [[number, number], [number, number]] = [
 ];
 const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
-// Leaflet draws pins from HTML strings. A pin shows the still from the spot's video, or a plain dot without one.
-function pinHtml(pin: Pin) {
+// Leaflet draws pins from HTML strings. A pin shows the still from the spot's video, or a plain dot without one,
+// in the colour of its category: bright and pulsing when the spot is open now, faded when it is closed, and in the
+// brand colour once it is part of the plan. The tip of the little tail is the spot's location.
+function pinHtml(pin: Pin, opts: { enterDelay: number | null; bounce: boolean }) {
   const name = escapeHtml(pin.name);
-  // Border colour says what the spot is: in your plan, open now, or closed.
-  const border = pin.state === "selected" ? "border-brand" : pin.state === "open" ? "border-ink" : "border-white";
-  // Pins stay small so they do not cover each other; the tapped one grows and shows its name.
+  const selected = pin.state === "selected";
+  const color = selected ? BRAND : categoryColor(pin.category);
+  const open = pin.state === "open";
   // The size is set inline: the map library forces width:auto on images inside pins, which let landscape stills grow wide.
+  const [w, h] = pin.imageUrl ? (pin.picked ? [64, 96] : [36, 48]) : pin.picked ? [34, 34] : [26, 26];
+  const shape = pin.imageUrl ? "rounded-lg" : "rounded-full";
+  const glow = selected ? `box-shadow:0 0 0 5px ${BRAND}44,0 2px 6px rgba(0,0,0,.3);` : "";
   const face = pin.imageUrl
-    ? `<img src="${escapeHtml(pin.imageUrl)}" alt="" style="width:${pin.picked ? 64 : 36}px;height:${pin.picked ? 96 : 48}px" class="rounded-lg border-[3px] ${border} bg-ink object-cover shadow-md" />`
-    : `<span class="block ${pin.picked ? "h-8 w-8" : "h-6 w-6"} rounded-full border-[3px] ${border} bg-white shadow-md"></span>`;
+    ? `<img src="${escapeHtml(pin.imageUrl)}" alt="" style="width:${w}px;height:${h}px;border:3px solid ${color};${glow}" class="relative z-[1] block ${shape} bg-ink object-cover shadow-md" />`
+    : `<span style="width:${w}px;height:${h}px;background:${color};border:3px solid #fff;${glow}" class="relative z-[1] block ${shape} shadow-md"></span>`;
+  const pulse = open && !selected ? `<span class="pin-pulse absolute inset-0 ${shape}" style="--c0:${color}b3;--c1:${color}00"></span>` : "";
+  const tail = `<span class="-mt-[7px] block h-3 w-3 rotate-45 rounded-[3px]" style="background:${color}"></span>`;
   const label = pin.picked
-    ? `<span class="mt-1 max-w-36 truncate rounded-full bg-ink px-2.5 py-1 text-xs font-semibold text-white shadow-md">${name}</span>`
+    ? `<span class="absolute bottom-full left-1/2 mb-1.5 max-w-40 -translate-x-1/2 truncate whitespace-nowrap rounded-full bg-ink px-2.5 py-1 text-xs font-semibold text-white shadow-md">${name}</span>`
     : "";
-  return `<div title="${name}" data-picked="${pin.picked}" class="absolute flex -translate-x-1/2 -translate-y-full cursor-pointer flex-col items-center">${face}${label}</div>`;
+  const classes = [
+    "relative flex flex-col items-center",
+    opts.enterDelay !== null ? "pin-enter" : "",
+    opts.bounce ? "pin-bounce" : "",
+    pin.state === "closed" ? "pin-closed" : "",
+    selected ? "pin-selected" : "",
+  ].join(" ");
+  return `<div title="${name}" data-picked="${pin.picked}" data-state="${pin.state}" class="absolute -translate-x-1/2 -translate-y-full cursor-pointer"><div class="${classes}" style="--d:${opts.enterDelay ?? 0}ms">${label}<div class="relative">${pulse}${face}</div>${tail}</div></div>`;
 }
 
 type Props = {
@@ -61,6 +77,8 @@ export function SpotMap({ pins, onPick, bottomInset, focusId, area }: Props) {
   const leaflet = useRef<{ L: typeof import("leaflet"); map: LeafletMap; layer: LayerGroup } | null>(null);
   const [ready, setReady] = useState(false);
   const fitted = useRef(false);
+  const seen = useRef(new Set<string>());
+  const bounced = useRef<string | null>(null);
   const pick = useRef(onPick);
   const inset = useRef(bottomInset);
   useEffect(() => {
@@ -80,15 +98,16 @@ export function SpotMap({ pins, onPick, bottomInset, focusId, area }: Props) {
         maxBounds: BERLIN_BOUNDS,
         maxBoundsViscosity: 1,
         minZoom: 10,
-        maxZoom: 16,
+        maxZoom: 18,
       }).setView(BERLIN, 11);
       L.control.attribution({ position: "topright", prefix: false }).addTo(map);
-      // A quiet grey base map so the pins carry the colour, with place names on a separate layer on top.
-      for (const layer of ["World_Light_Gray_Base", "World_Light_Gray_Reference"])
-        L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${layer}/MapServer/tile/{z}/{y}/{x}`, {
-          maxZoom: 16,
-          attribution: layer.endsWith("Base") ? "Map &copy; Esri" : undefined,
-        }).addTo(map);
+      // Humanitarian OpenStreetMap style: pastel streets, teal water, fresh greens. A little extra saturation
+      // is added in globals.css. Hosted by OpenStreetMap France for light use; see the credit below.
+      L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
+        subdomains: "abc",
+        maxZoom: 18,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, tiles by HOT',
+      }).addTo(map);
       // Tapping the empty map lets go of the tapped spot, so its enlarged pin stops covering its neighbours.
       map.on("click", () => pick.current(null));
       leaflet.current = { L, map, layer: L.layerGroup().addTo(map) };
@@ -105,9 +124,16 @@ export function SpotMap({ pins, onPick, bottomInset, focusId, area }: Props) {
     const ctx = leaflet.current;
     if (!ready || !ctx) return;
     ctx.layer.clearLayers();
+    // Pins pop in one after another the first time they appear; redrawing them later (a pick, a filter) is silent.
+    let fresh = 0;
     for (const pin of pins) {
+      const isNew = !seen.current.has(pin.id);
+      seen.current.add(pin.id);
+      const bounce = pin.picked && bounced.current !== pin.id;
+      if (pin.picked) bounced.current = pin.id;
+      else if (bounced.current === pin.id) bounced.current = null;
       ctx.L.marker([pin.lat, pin.lng], {
-        icon: ctx.L.divIcon({ html: pinHtml(pin), className: "", iconSize: [0, 0] }),
+        icon: ctx.L.divIcon({ html: pinHtml(pin, { enterDelay: isNew ? Math.min(fresh++ * 70, 700) : null, bounce }), className: "", iconSize: [0, 0] }),
         // Open and selected spots sit on top of closed ones where pins overlap.
         zIndexOffset: pin.picked ? 3000 : pin.state === "selected" ? 2000 : pin.state === "open" ? 1000 : 0,
       })

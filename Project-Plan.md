@@ -37,6 +37,8 @@ From `Project-Raw.md` and the starter repo. Not up for re-decision.
 
 > **Plan updated:** search change from the team (22 Nov 2026). The bar over the map is a location search (`src/components/location-search.tsx`): it suggests Berlin districts and neighbourhoods from a fixed list with approximate centres (`src/lib/areas.ts`, 32 areas, umlaut-insensitive), and picking one moves the map there at zoom 14; "All of Berlin" frames every pin again. It moves the map only and does not filter the list. The activity search now sits in the bottom sheet header above the filter chips. New event: `area_picked`.
 
+> **Plan updated:** map look from the team (22 Nov 2026). The base map is the Humanitarian OpenStreetMap style (tiles hosted by OpenStreetMap France, light use only, credited on the map) with a small saturation boost in `src/app/globals.css`; it replaced the grey Esri map. Pins are colour-coded by category (`src/lib/categories.ts`, also shown as dots on the filter chips): a coloured border and tail, a pulsing ripple while the spot is open now, faded when closed, brand colour when in the plan being built, a pop-in the first time a pin appears and a bounce when tapped. Animations switch off with reduced motion. If traffic grows, swap the tile URL in `src/components/spot-map.tsx` for a hosted provider with an API key. Watch-out: `next dev` stopped recompiling `globals.css` after one edit in this session; a production build (`pnpm build`) shows the real result.
+
 ## Architecture Decision Records
 
 ### ADR-1: Anonymous identity is a device id in localStorage

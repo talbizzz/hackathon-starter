@@ -11,6 +11,7 @@ import { SpotCard } from "@/components/spot-card";
 import { SpotMap, type Pin } from "@/components/spot-map";
 import { Events, getAttribution, track } from "@/lib/analytics";
 import type { Area } from "@/lib/areas";
+import { CATEGORIES, categoryColor } from "@/lib/categories";
 import { getDeviceId, uuid } from "@/lib/device";
 import { env } from "@/lib/env";
 import { useFavorites } from "@/lib/favorites";
@@ -20,7 +21,6 @@ import { isOpenNow, opensLaterToday, opensTomorrow, type Spot } from "@/lib/spot
 import { createClient } from "@/lib/supabase/client";
 import { siteConfig } from "@/lib/site-config";
 
-const CATEGORIES = ["food", "drinks", "market", "culture", "sport", "outdoors", "nightlife", "other"] as const;
 const FLAGS = {
   indoor: (s: Spot) => s.indoor,
   free: (s: Spot) => s.price === 0,
@@ -98,19 +98,23 @@ export function SpotList({ spots }: { spots: Spot[] }) {
   }, [visible, now]);
 
   const pins = useMemo<Pin[]>(
+    // Wait for the clock so every pin is drawn once, already in its final open or closed state.
     () =>
-      visible
+      !now
+        ? []
+        : visible
         .filter((s) => s.lat !== null && s.lng !== null)
         .map((s) => ({
           id: s.id,
           name: s.name,
           lat: s.lat!,
           lng: s.lng!,
+          category: s.category,
           imageUrl: s.poster_url,
           state: selected.includes(s.id) ? "selected" : sections.openNow.includes(s) ? "open" : "closed",
           picked: picked === s.id,
         })),
-    [visible, selected, sections, picked],
+    [now, visible, selected, sections, picked],
   );
 
   // Open the fullscreen videos on one spot; swiping continues with its neighbours, nearest first.
@@ -309,6 +313,7 @@ export function SpotList({ spots }: { spots: Spot[] }) {
               ))}
               {CATEGORIES.map((c) => (
                 <button key={c} onClick={() => setCategories(toggled(categories, c))} className={chip(categories.includes(c))}>
+                  <span className="mr-1.5 inline-block h-2 w-2 rounded-full align-middle" style={{ background: categoryColor(c) }} />
                   {t(`cat.${c}`)}
                 </button>
               ))}

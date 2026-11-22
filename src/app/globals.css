@@ -44,3 +44,70 @@ body {
 .leaflet-container .leaflet-control-container .leaflet-control-attribution a {
   color: inherit;
 }
+
+/* Map pins: pop in, pulse while open, bounce when tapped. Reduced motion turns all of it off. */
+@keyframes pin-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pin-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--c0);
+  }
+  100% {
+    box-shadow: 0 0 0 16px var(--c1);
+  }
+}
+@keyframes pin-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  35% {
+    transform: translateY(-12px);
+  }
+  65% {
+    transform: translateY(-3px);
+  }
+}
+.pin-enter {
+  animation: pin-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) backwards;
+  animation-delay: var(--d, 0ms);
+}
+.pin-pulse {
+  animation: pin-pulse 2.2s ease-out infinite;
+  pointer-events: none;
+}
+.pin-bounce {
+  animation: pin-bounce 0.55s ease-out;
+}
+.pin-closed {
+  filter: saturate(0.4);
+  opacity: 0.88;
+}
+.pin-selected {
+  scale: 1.12;
+  transform-origin: bottom center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pin-enter,
+  .pin-pulse,
+  .pin-bounce {
+    animation: none;
+  }
+}
+
+/* A livelier base map: push the greens and blues of the map tiles a little. */
+.leaflet-tile-pane {
+  filter: saturate(1.2);
+}
