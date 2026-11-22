@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { LangToggle } from "@/components/lang-toggle";
 import { Logo, LogoMark } from "@/components/logo";
 import { Events, track } from "@/lib/analytics";
@@ -31,6 +32,56 @@ function BrowseLink() {
     <Link href={BROWSE} data-testid="browse-link" onClick={() => track(Events.ctaClicked, { where: "browse" })} className="inline-block text-lg font-medium underline underline-offset-4">
       {t("land.browse")}
     </Link>
+  );
+}
+
+// The picture next to the headline. To change it, replace the files in public/landing/ or edit this one constant.
+//   kind "video": a muted, looping clip. It behaves like a GIF but is about ten times smaller. MP4 (H.264) plays everywhere.
+//   kind "image": any GIF, PNG or JPG photo. Keep a GIF under about 2 MB so it loads quickly inside Instagram.
+// The frame is portrait (about 9:19) and crops the file to fit, so portrait files work best.
+const HERO_MEDIA: { kind: "video" | "image"; src: string; poster?: string } = {
+  kind: "video",
+  src: "/landing/hero.mp4",
+  poster: "/landing/hero-poster.jpg",
+};
+
+function HeroMedia() {
+  const { t } = useT();
+  const video = useRef<HTMLVideoElement>(null);
+
+  // People who ask for less motion get a still: the last frame, which shows the result.
+  useEffect(() => {
+    const el = video.current;
+    if (!el || !window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    el.pause();
+    const showEnd = () => {
+      el.currentTime = Math.max(0, el.duration - 0.5);
+    };
+    if (el.readyState >= 1) showEnd();
+    else el.addEventListener("loadedmetadata", showEnd, { once: true });
+  }, []);
+
+  return (
+    <div className="mx-auto aspect-[390/844] w-[260px] shrink-0 overflow-hidden rounded-[2rem] border border-neutral-200 bg-neutral-100 md:mx-0 md:w-[300px]">
+      {HERO_MEDIA.kind === "video" ? (
+        <video
+          ref={video}
+          data-testid="hero-media"
+          src={HERO_MEDIA.src}
+          poster={HERO_MEDIA.poster}
+          aria-label={t("land.hero.alt")}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element -- a GIF must not be re-encoded by the image optimiser
+        <img data-testid="hero-media" src={HERO_MEDIA.src} alt={t("land.hero.alt")} className="h-full w-full object-cover" />
+      )}
+    </div>
   );
 }
 
@@ -78,7 +129,7 @@ export function Landing() {
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-20 bg-white">
-        <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-5">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
           <Link href="/" aria-label={siteConfig.name}>
             <Logo />
           </Link>
@@ -89,19 +140,23 @@ export function Landing() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-5">
-        <section className="pb-16 pt-10 sm:pb-24 sm:pt-16">
-          <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl">{t("land.h1")}</h1>
-          <p className="mt-5 text-lg leading-relaxed text-neutral-700 sm:text-xl">{t("land.sub")}</p>
-          <div className="mt-8">
-            <StartButton where="hero" className="inline-flex h-16 w-full px-10 text-xl sm:w-auto" />
+      <main>
+        <section className="mx-auto grid max-w-5xl items-center gap-10 px-5 pb-16 pt-10 md:grid-cols-[1fr_auto] md:gap-16 md:pb-24 md:pt-14">
+          <div>
+            <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">{t("land.h1")}</h1>
+            <p className="mt-5 text-lg leading-relaxed text-neutral-700 sm:text-xl">{t("land.sub")}</p>
+            <div className="mt-8">
+              <StartButton where="hero" className="inline-flex h-16 w-full px-10 text-xl sm:w-auto" />
+            </div>
+            <p className="mt-4 text-neutral-600">{t("land.note")}</p>
+            <div className="mt-4">
+              <BrowseLink />
+            </div>
           </div>
-          <p className="mt-4 text-neutral-600">{t("land.note")}</p>
-          <div className="mt-4">
-            <BrowseLink />
-          </div>
+          <HeroMedia />
         </section>
 
+        <div className="mx-auto max-w-3xl px-5">
         <section aria-labelledby="how">
           <h2 id="how" className="text-3xl font-bold tracking-tight">
             {t("land.how")}
@@ -144,6 +199,7 @@ export function Landing() {
             <BrowseLink />
           </div>
         </section>
+        </div>
       </main>
 
       <footer className="mx-auto flex max-w-3xl items-center justify-center gap-2 px-5 py-12 text-neutral-600">
