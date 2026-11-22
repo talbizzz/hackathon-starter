@@ -1,7 +1,7 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import type { LayerGroup, Map as LeafletMap } from "leaflet";
+import type { LayerGroup, Map as LeafletMap, Marker } from "leaflet";
 import { useEffect, useRef, useState } from "react";
 import { BRAND, categoryColor } from "@/lib/categories";
 
@@ -78,6 +78,8 @@ export function SpotMap({ pins, onPick, bottomInset, focusId, area }: Props) {
   const [ready, setReady] = useState(false);
   const fitted = useRef(false);
   const seen = useRef(new Set<string>());
+  // What is on the map now, by spot, with the signature of what each pin looks like.
+  const markers = useRef(new Map<string, { marker: Marker; sig: string }>());
   const bounced = useRef<string | null>(null);
   const pick = useRef(onPick);
   const inset = useRef(bottomInset);
@@ -89,6 +91,7 @@ export function SpotMap({ pins, onPick, bottomInset, focusId, area }: Props) {
   // Leaflet needs `window`, so it is loaded in the browser only.
   useEffect(() => {
     let cancelled = false;
+    const drawn = markers.current;
     import("leaflet").then(({ default: L }) => {
       if (cancelled || !container.current) return;
       const map = L.map(container.current, {
@@ -117,14 +120,21 @@ export function SpotMap({ pins, onPick, bottomInset, focusId, area }: Props) {
       cancelled = true;
       leaflet.current?.map.remove();
       leaflet.current = null;
+      drawn.clear();
     };
   }, []);
 
   useEffect(() => {
     const ctx = leaflet.current;
     if (!ready || !ctx) return;
-    ctx.layer.clearLayers();
     // Pins pop in one after another the first time they appear; redrawing them later (a pick, a filter) is silent.
+    // Only pins that changed are redrawn. Rebuilding every picture pin on each tap made them all flash dark while the stills repainted.
+    const live = new Set(pins.map((p) => p.id));
+    for (const [id, m] of markers.current)
+      if (!live.has(id)) {
+        ctx.layer.removeLayer(m.marker);
+        markers.current.delete(id);
+      }
     let fresh = 0;
     for (const pin of pins) {
       const isNew = !seen.current.has(pin.id);
@@ -132,13 +142,21 @@ export function SpotMap({ pins, onPick, bottomInset, focusId, area }: Props) {
       const bounce = pin.picked && bounced.current !== pin.id;
       if (pin.picked) bounced.current = pin.id;
       else if (bounced.current === pin.id) bounced.current = null;
-      ctx.L.marker([pin.lat, pin.lng], {
-        icon: ctx.L.divIcon({ html: pinHtml(pin, { enterDelay: isNew ? Math.min(fresh++ * 70, 700) : null, bounce }), className: "", iconSize: [0, 0] }),
-        // Open and selected spots sit on top of closed ones where pins overlap.
-        zIndexOffset: pin.picked ? 3000 : pin.state === "selected" ? 2000 : pin.state === "open" ? 1000 : 0,
-      })
+      const sig = [pin.state, pin.picked, pin.imageUrl, pin.lat, pin.lng, pin.name, pin.category].join("|");
+      const existing = markers.current.get(pin.id);
+      if (existing?.sig === sig) continue;
+      const icon = ctx.L.divIcon({ html: pinHtml(pin, { enterDelay: isNew ? Math.min(fresh++ * 70, 700) : null, bounce }), className: "", iconSize: [0, 0] });
+      // Open and selected spots sit on top of closed ones where pins overlap.
+      const zIndexOffset = pin.picked ? 3000 : pin.state === "selected" ? 2000 : pin.state === "open" ? 1000 : 0;
+      if (existing) {
+        existing.marker.setIcon(icon).setLatLng([pin.lat, pin.lng]).setZIndexOffset(zIndexOffset);
+        existing.sig = sig;
+        continue;
+      }
+      const marker = ctx.L.marker([pin.lat, pin.lng], { icon, zIndexOffset })
         .on("click", () => pick.current(pin.id))
         .addTo(ctx.layer);
+      markers.current.set(pin.id, { marker, sig });
     }
     if (!fitted.current && pins.length > 0) {
       fitted.current = true;
