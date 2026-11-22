@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import posthog from "posthog-js";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { trackVisit } from "@/lib/analytics";
+import { trackLandingSkipped, trackVisit, utmProps } from "@/lib/analytics";
 import { env } from "@/lib/env";
 
 let phReady = false;
@@ -24,7 +24,9 @@ function PageView() {
   useEffect(() => {
     initPostHog();
     trackVisit();
-    posthog.capture("$pageview", { $current_url: window.location.href });
+    // The pageview goes first and carries utm_*; landing_skipped follows (first load after the redirect only).
+    posthog.capture("$pageview", { $current_url: window.location.href, ...utmProps() });
+    trackLandingSkipped();
   }, [pathname, search]);
   return null;
 }

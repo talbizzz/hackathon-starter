@@ -23,6 +23,8 @@ export const Events = {
   directionsTapped: "directions_tapped",
   offerViewed: "offer_viewed",
   checkoutClicked: "checkout_clicked",
+  landingSkipped: "landing_skipped",
+  firstVideoViewed: "first_video_viewed",
 } as const;
 
 const ATTRIBUTION_KEY = "attribution";
@@ -79,4 +81,31 @@ export function identify(userId: string, email?: string) {
 export function resetAnalytics() {
   if (typeof window === "undefined") return;
   posthog.reset();
+}
+
+const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"] as const;
+
+/** utm_* params of the current URL, so they are explicitly on the first $pageview after a redirect. */
+export function utmProps(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const query = new URLSearchParams(window.location.search);
+  const out: Record<string, string> = {};
+  for (const key of UTM_KEYS) {
+    const value = query.get(key);
+    if (value) out[key] = value.slice(0, 200);
+  }
+  return out;
+}
+
+/** Reports "landing_skipped" once, if the proxy redirected this visit away from the landing page. */
+export function trackLandingSkipped() {
+  if (typeof document === "undefined") return;
+  const match = document.cookie.split("; ").find((c) => c.startsWith("nm_ls="));
+  if (!match) return;
+  document.cookie = "nm_ls=; path=/; max-age=0";
+  let data: { utm_source?: string; referrer?: string } = {};
+  try {
+    data = JSON.parse(decodeURIComponent(match.slice("nm_ls=".length)));
+  } catch {}
+  track(Events.landingSkipped, { utm_source: data.utm_source || null, referrer: data.referrer || document.referrer || null });
 }
