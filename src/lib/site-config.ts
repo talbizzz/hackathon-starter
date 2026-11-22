@@ -8,7 +8,7 @@ export const siteConfig = {
   // Paid offer on /plan-for-me. Pay buttons open https://paypal.me/<paypalMe>/<price>EUR.
   // Empty = buttons hidden and the page says payments open soon. Prices in EUR.
   offer: {
-    paypalMe: "",
+    paypalMe: "EdgarAbasov",
     readyPlanPrice: "3.99",
     customPlanPrice: "29",
   },
