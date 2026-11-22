@@ -1,0 +1,11 @@
+{
+  // The dev site (hackathon-starter-dev.<account>.workers.dev). Same code, no custom domain.
+  // Deploy it with: pnpm deploy:dev
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hackathon-starter-dev",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "observability": { "enabled": true }
+}

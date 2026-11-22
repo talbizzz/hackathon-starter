@@ -5,5 +5,7 @@
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  // The custom domain is created on deploy. The zone must be active in the same Cloudflare account.
+  "routes": [{ "pattern": "nebenmir.app", "custom_domain": true }],
   "observability": { "enabled": true }
 }
