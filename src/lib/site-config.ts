@@ -1,8 +1,8 @@
 // ALL landing-page copy and site metadata lives here. Rewrite it in 2 minutes.
 export const siteConfig = {
-  name: "Kiez Plan", // working title: replace with the final brand name
-  tagline: "Pick 3 spots, send one link, your friends vote.",
-  description: "What to do in Berlin right now: curated spots on a map with video, one link for your group chat, one tap to vote.",
+  name: "NebenMir",
+  tagline: "Find something to do in Berlin. Let your friends vote.",
+  description: "What to do around you in Berlin: curated spots on a map, each with a video. Pick a few, send one link, and let your friends vote.",
   hero: {
     title: "Plan your next trip in seconds",
     subtitle: "Placeholder subtitle: explain the value in one or two lines.",

@@ -5,6 +5,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { BottomSheet, halfHeight, type Snap } from "@/components/bottom-sheet";
 import { LangToggle } from "@/components/lang-toggle";
 import { LocationSearch } from "@/components/location-search";
+import { Logo } from "@/components/logo";
 import { PlanSetup, type PlanConfig } from "@/components/plan-setup";
 import { ReelViewer } from "@/components/reel-viewer";
 import { SpotCard } from "@/components/spot-card";
@@ -284,8 +285,10 @@ export function SpotList({ spots }: { spots: Spot[] }) {
         footer={footer}
         header={
           <>
-            <div className="flex items-baseline justify-between gap-3 px-4">
-              <h1 className="text-xl font-bold tracking-tight">{siteConfig.name}</h1>
+            <div className="flex items-center justify-between gap-3 px-4">
+              <h1 aria-label={siteConfig.name}>
+                <Logo />
+              </h1>
               {now && (
                 <p className="text-sm text-secondary">
                   {visible.length} {t(visible.length === 1 ? "sheet.spot" : "sheet.spots")} · {sections.openNow.length} {t("sheet.openNow")}
