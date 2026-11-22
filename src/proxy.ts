@@ -9,7 +9,7 @@ const PROTECTED = ["/dashboard", "/stats", "/admin"];
 export async function proxy(request: NextRequest) {
   // Ad / social visitors skip the landing page: a 302 before any HTML, so it never flashes.
   if (request.nextUrl.pathname === "/") {
-    const skip = landingSkipTarget(request.nextUrl, request.headers.get("referer"));
+    const skip = landingSkipTarget(request.nextUrl, request.headers.get("referer"), request.headers.get("user-agent"));
     if (skip) {
       const url = request.nextUrl.clone();
       url.pathname = skip.path;
