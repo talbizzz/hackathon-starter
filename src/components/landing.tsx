@@ -203,11 +203,24 @@ export function Landing() {
         </div>
       </main>
 
-      <footer className="mx-auto flex max-w-3xl items-center justify-center gap-2 px-5 py-12 text-neutral-600">
-        <LogoMark className="h-5 w-5" />
-        <span>
-          {siteConfig.name} · {t("land.made")}
-        </span>
+      <footer className="mx-auto flex max-w-3xl flex-col items-center gap-4 px-5 py-12 text-center text-neutral-600">
+        <div className="flex items-center justify-center gap-2">
+          <LogoMark className="h-5 w-5" />
+          <span>
+            {siteConfig.name} · {t("land.made")}
+          </span>
+        </div>
+        <div>
+          <p>{t("land.social")}</p>
+          <div className="mt-1 flex flex-wrap justify-center gap-x-4 gap-y-1">
+            <a href={siteConfig.social.tiktok} className="inline-flex min-h-11 items-center rounded-sm px-2 underline underline-offset-4 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
+              {t("land.tiktok")}
+            </a>
+            <a href={siteConfig.social.instagram} className="inline-flex min-h-11 items-center rounded-sm px-2 underline underline-offset-4 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
+              {t("land.instagram")}
+            </a>
+          </div>
+        </div>
       </footer>
     </div>
   );
