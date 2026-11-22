@@ -7,5 +7,7 @@
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   // The custom domain is created on deploy. The zone must be active in the same Cloudflare account.
   "routes": [{ "pattern": "nebenmir.app", "custom_domain": true }],
+  // Keep the workers.dev address alive too: setting routes switches it off unless this is true.
+  "workers_dev": true,
   "observability": { "enabled": true }
 }
