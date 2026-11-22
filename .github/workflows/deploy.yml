@@ -36,12 +36,10 @@ jobs:
           secrets: |
             AI_PROVIDER
             ANTHROPIC_API_KEY
-            OPENAI_API_KEY
             NEXT_PUBLIC_SUPABASE_URL
             NEXT_PUBLIC_SUPABASE_ANON_KEY
         env:
           AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
